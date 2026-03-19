@@ -319,6 +319,7 @@ export default function AdminPage() {
               </button>
 
               <button
+                onClick={() => setView("users")}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -335,16 +336,8 @@ export default function AdminPage() {
                   fontFamily: "Georgia, serif",
                 }}
               >
-                User Support
-                <span
-                  style={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: "50%",
-                    background: GOLD,
-                    display: "inline-block",
-                  }}
-                />
+                Manage Users
+                <span style={{ fontSize: 18, fontWeight: 400, color: CRIMSON }}>→</span>
               </button>
             </div>
 
