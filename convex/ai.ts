@@ -76,9 +76,12 @@ export const respondAsPersona = internalAction({
     if (context.lastSenderId === seedUserId) return;
     if (context.recentMessages.length === 0) return;
 
-    const apiKey = process.env.OPENROUTER_API_KEY;
+    // DB setting takes priority; fall back to env var
+    const apiKey =
+      (await ctx.runQuery(internal.aiHelpers.getSetting, { key: "OPENROUTER_API_KEY" }))
+      ?? process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
-      console.error("OPENROUTER_API_KEY not set — add it in Convex dashboard → Settings → Environment Variables");
+      console.error("OPENROUTER_API_KEY not set — add via Admin → Settings or Convex env vars");
       return;
     }
 

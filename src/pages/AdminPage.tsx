@@ -79,10 +79,12 @@ export default function AdminPage() {
   const stats = useQuery(api.admin.getStats);
   const users = useQuery(api.admin.getAllUsers);
   const questions = useQuery(api.questions.getAllQuestions);
+  const settings = useQuery(api.admin.getSettings);
   const deleteUser = useMutation(api.admin.deleteUser);
   const updateQuestion = useMutation(api.questions.updateQuestion);
+  const updateSetting = useMutation(api.admin.updateSetting);
 
-  const [view, setView] = useState<"dashboard" | "users" | "questions">("dashboard");
+  const [view, setView] = useState<"dashboard" | "users" | "questions" | "settings">("dashboard");
   const [navOpen, setNavOpen] = useState(false);
   const [latencyMs, setLatencyMs] = useState<number | null>(null);
   const mountTime = useRef(Date.now());
@@ -94,9 +96,15 @@ export default function AdminPage() {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [search, setSearch] = useState("");
-  const [editingQ, setEditingQ] = useState<string | null>(null); // question _id being edited
+  const [editingQ, setEditingQ] = useState<string | null>(null);
   const [qDraft, setQDraft] = useState<{ text: string; defaultWeight: number }>({ text: "", defaultWeight: 5 });
   const [savingQ, setSavingQ] = useState(false);
+
+  // Settings view state
+  const [apiKeyDraft, setApiKeyDraft] = useState("");
+  const [showKey, setShowKey] = useState(false);
+  const [savingKey, setSavingKey] = useState(false);
+  const [keySaved, setKeySaved] = useState(false);
 
   const handleDelete = async (userId: string) => {
     setDeleting(true);
@@ -218,6 +226,7 @@ export default function AdminPage() {
               { label: "Dashboard", key: "dashboard" as const },
               { label: "Questions", key: "questions" as const },
               { label: "All Users", key: "users" as const },
+              { label: "Settings",  key: "settings"  as const },
             ].map((item) => (
               <button
                 key={item.key}
@@ -432,6 +441,117 @@ export default function AdminPage() {
               </div>
             )}
           </>
+        ) : view === "settings" ? (
+          <>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+              <button onClick={() => setView("dashboard")} style={{ color: CRIMSON, fontSize: 20 }}>←</button>
+              <h1 style={{ fontSize: 26, fontWeight: 800, color: "#1a140e" }}>Settings</h1>
+            </div>
+
+            {/* OpenRouter API Key */}
+            <div style={{ background: CARD_BG, borderRadius: 14, padding: "20px 20px 24px", marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                <span style={{ fontSize: 16 }}>🤖</span>
+                <h2 style={{ fontSize: 15, fontWeight: 800, color: "#1a140e" }}>AI Persona Engine</h2>
+              </div>
+              <p style={{ fontSize: 12, color: "#7a6e60", marginBottom: 16, lineHeight: 1.5 }}>
+                OpenRouter API key used by seed profiles to respond in chat. Stored securely in the database.
+              </p>
+
+              {/* Current status */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#7a6e60", marginBottom: 6 }}>
+                  Current Key
+                </div>
+                {settings && settings.find(s => s.key === "OPENROUTER_API_KEY") ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 13, fontFamily: "monospace", color: "#1a140e" }}>
+                      {settings.find(s => s.key === "OPENROUTER_API_KEY")?.value}
+                    </span>
+                    <span style={{ fontSize: 10, background: "rgba(76,175,115,0.15)", color: "#2e7d5a", padding: "2px 8px", borderRadius: 999, fontWeight: 700 }}>
+                      ✓ SET
+                    </span>
+                  </div>
+                ) : (
+                  <span style={{ fontSize: 12, color: "#c0392b", fontWeight: 600 }}>
+                    ✗ Not set — AI responses will fail
+                  </span>
+                )}
+              </div>
+
+              {/* Input */}
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#7a6e60", marginBottom: 6 }}>
+                Update Key
+              </div>
+              <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                <input
+                  type={showKey ? "text" : "password"}
+                  value={apiKeyDraft}
+                  onChange={e => { setApiKeyDraft(e.target.value); setKeySaved(false); }}
+                  placeholder="sk-or-v1-..."
+                  style={{
+                    flex: 1, padding: "11px 14px",
+                    background: "#f5f0e6",
+                    border: `1.5px solid ${keySaved ? "#4caf73" : "rgba(0,0,0,0.1)"}`,
+                    borderRadius: 10, fontSize: 13,
+                    fontFamily: "monospace", color: "#1a140e", outline: "none",
+                  }}
+                />
+                <button
+                  onClick={() => setShowKey(v => !v)}
+                  style={{ padding: "0 14px", background: "transparent", border: `1px solid rgba(0,0,0,0.12)`, borderRadius: 10, fontSize: 16, color: "#7a6e60", cursor: "pointer" }}
+                >
+                  {showKey ? "🙈" : "👁"}
+                </button>
+              </div>
+
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <button
+                  disabled={savingKey || !apiKeyDraft.trim()}
+                  onClick={async () => {
+                    setSavingKey(true);
+                    try {
+                      await updateSetting({ key: "OPENROUTER_API_KEY", value: apiKeyDraft.trim() });
+                      setApiKeyDraft("");
+                      setKeySaved(true);
+                    } finally {
+                      setSavingKey(false);
+                    }
+                  }}
+                  style={{
+                    padding: "10px 22px",
+                    background: !apiKeyDraft.trim() ? "rgba(0,0,0,0.08)" : CRIMSON,
+                    color: !apiKeyDraft.trim() ? "#9a8e80" : "#fff",
+                    borderRadius: 10, fontSize: 13, fontWeight: 700,
+                    cursor: apiKeyDraft.trim() ? "pointer" : "default",
+                  }}
+                >
+                  {savingKey ? "Saving…" : "Save Key"}
+                </button>
+                {keySaved && (
+                  <span style={{ fontSize: 13, color: "#2e7d5a", fontWeight: 600 }}>✓ Saved!</span>
+                )}
+              </div>
+
+              <p style={{ fontSize: 11, color: "#9a8e80", marginTop: 14, lineHeight: 1.6 }}>
+                Get your key at <strong>openrouter.ai/keys</strong> · Changes take effect immediately on the next user message
+              </p>
+            </div>
+
+            {/* Model info */}
+            <div style={{ background: CARD_BG, borderRadius: 14, padding: "18px 20px" }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#7a6e60", marginBottom: 8 }}>
+                Active Model
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#1a140e", fontFamily: "monospace" }}>
+                google/gemini-2.0-flash-001
+              </div>
+              <p style={{ fontSize: 12, color: "#7a6e60", marginTop: 6, lineHeight: 1.5 }}>
+                To change model, update the <code>MODEL</code> constant in <code>convex/ai.ts</code>.
+              </p>
+            </div>
+          </>
+
         ) : view === "questions" ? (
           <>
             {/* Questions view */}

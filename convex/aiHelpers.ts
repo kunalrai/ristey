@@ -2,6 +2,18 @@
 import { internalMutation, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
 
+// ── Read a setting value by key (internal use only) ──────────────────────────
+export const getSetting = internalQuery({
+  args: { key: v.string() },
+  handler: async (ctx, { key }) => {
+    const row = await ctx.db
+      .query("settings")
+      .withIndex("by_key", (q) => q.eq("key", key))
+      .unique();
+    return row?.value ?? null;
+  },
+});
+
 // ── Fetch all context needed to build the persona prompt ─────────────────────
 export const getPersonaContext = internalQuery({
   args: {

@@ -82,6 +82,11 @@ export default defineSchema({
   })
     .index("by_conversation", ["conversationId", "sentAt"]),
 
+  settings: defineTable({
+    key: v.string(),
+    value: v.string(),
+  }).index("by_key", ["key"]),
+
   matchScores: defineTable({
     userA: v.id("users"),
     userB: v.id("users"),

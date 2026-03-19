@@ -75,6 +75,42 @@ export const getAllUsers = query({
   },
 });
 
+// ── Settings (admin-only key-value store) ───────────────────────────────────
+const MASKED = "••••••••••••••••••••••••";
+
+export const getSettings = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    const rows = await ctx.db.query("settings").collect();
+    // Return masked values for sensitive keys
+    return rows.map((r) => ({
+      key: r.key,
+      // Show last 4 chars so admin can confirm which key is set
+      value: r.value.length > 4
+        ? MASKED + r.value.slice(-4)
+        : MASKED,
+      isSet: r.value.length > 0,
+    }));
+  },
+});
+
+export const updateSetting = mutation({
+  args: { key: v.string(), value: v.string() },
+  handler: async (ctx, { key, value }) => {
+    await requireAdmin(ctx);
+    const existing = await ctx.db
+      .query("settings")
+      .withIndex("by_key", (q) => q.eq("key", key))
+      .unique();
+    if (existing) {
+      await ctx.db.patch(existing._id, { value });
+    } else {
+      await ctx.db.insert("settings", { key, value });
+    }
+  },
+});
+
 export const deleteUser = mutation({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
