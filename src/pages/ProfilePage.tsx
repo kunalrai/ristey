@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "convex/react";
 import { useNavigate } from "react-router-dom";
 import { useClerk } from "@clerk/clerk-react";
 import { api } from "../../convex/_generated/api";
+import CropModal from "../components/CropModal";
 
 const BG = "#F5F0E6";
 const CARD_BG = "#EDE8DC";
@@ -51,22 +52,30 @@ export default function ProfilePage() {
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue]     = useState("");
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [cropSrc, setCropSrc]         = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAvatarClick = () => { if (!uploadingAvatar) fileInputRef.current?.click(); };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setCropSrc(reader.result as string);
+    reader.readAsDataURL(file);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleCropConfirm = async (blob: Blob) => {
+    setCropSrc(null);
     setUploadingAvatar(true);
     try {
       const uploadUrl = await generateUploadUrl();
-      const res = await fetch(uploadUrl, { method: "POST", headers: { "Content-Type": file.type }, body: file });
+      const res = await fetch(uploadUrl, { method: "POST", headers: { "Content-Type": "image/jpeg" }, body: blob });
       const { storageId } = await res.json();
       await updateAvatar({ storageId });
     } finally {
       setUploadingAvatar(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -103,6 +112,14 @@ export default function ProfilePage() {
   return (
     <div style={{ minHeight: "100vh", background: BG, fontFamily: "Georgia, serif", paddingBottom: 96 }}>
       <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
+
+      {cropSrc && (
+        <CropModal
+          imageSrc={cropSrc}
+          onConfirm={handleCropConfirm}
+          onCancel={() => setCropSrc(null)}
+        />
+      )}
 
       {/* ── Top Nav ── */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", background: BG }}>
