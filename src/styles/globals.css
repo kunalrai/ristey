@@ -112,3 +112,6 @@ input, textarea, select {
 .animate-fade-in  { animation: fadeIn  0.3s ease forwards; }
 .animate-slide-up { animation: slideUp 0.4s ease forwards; }
 .animate-pulse    { animation: pulse   1.5s ease infinite; }
+
+/* Hide Clerk development mode badge */
+.cl-devBrowser { display: none !important; }
