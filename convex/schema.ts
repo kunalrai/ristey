@@ -59,6 +59,27 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_user_and_question", ["userId", "questionKey"]),
 
+  conversations: defineTable({
+    userA: v.id("users"),   // always the lexicographically smaller ID
+    userB: v.id("users"),
+    lastMessage: v.optional(v.string()),
+    lastMessageAt: v.number(),
+    lastSenderId: v.optional(v.id("users")),
+    unreadA: v.number(),    // unread count for userA
+    unreadB: v.number(),
+  })
+    .index("by_user_a", ["userA", "lastMessageAt"])
+    .index("by_user_b", ["userB", "lastMessageAt"])
+    .index("by_pair",   ["userA", "userB"]),
+
+  messages: defineTable({
+    conversationId: v.id("conversations"),
+    senderId: v.id("users"),
+    text: v.string(),
+    sentAt: v.number(),
+  })
+    .index("by_conversation", ["conversationId", "sentAt"]),
+
   matchScores: defineTable({
     userA: v.id("users"),
     userB: v.id("users"),

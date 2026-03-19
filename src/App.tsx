@@ -8,6 +8,8 @@ import PreferencesPage from "./pages/PreferencesPage";
 import FeedPage from "./pages/FeedPage";
 import ProfilePage from "./pages/ProfilePage";
 import MatchDetailPage from "./pages/MatchDetailPage";
+import MessagesPage from "./pages/MessagesPage";
+import ChatPage from "./pages/ChatPage";
 import AppShell from "./components/layout/AppShell";
 import AdminPage from "./pages/AdminPage";
 
@@ -70,10 +72,14 @@ export default function App() {
           }
         >
           <Route path="/feed" element={<FeedPage />} />
+          <Route path="/messages" element={<MessagesPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/match/:userId" element={<MatchDetailPage />} />
         </Route>
 
+        <Route path="/chat/:conversationId" element={
+          <AuthGate><ChatPage /></AuthGate>
+        } />
         <Route
           path="/sso-callback"
           element={<AuthenticateWithRedirectCallback />}

@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import CompatibilityBar from "../components/feed/CompatibilityBar";
@@ -26,6 +26,12 @@ interface BreakdownEntry {
 export default function MatchDetailPage() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
+  const getOrCreateConversation = useMutation(api.chat.getOrCreateConversation);
+
+  const handleMessage = async () => {
+    const convoId = await getOrCreateConversation({ otherUserId: userId as Id<"users"> });
+    navigate(`/chat/${convoId}`);
+  };
 
   const detail = useQuery(api.matches.getMatchDetail, {
     targetUserId: userId as Id<"users">,
@@ -84,17 +90,27 @@ export default function MatchDetailPage() {
         padding: "var(--space-md)",
       }}
     >
-      <button
-        onClick={() => navigate(-1)}
-        style={{
-          color: "var(--color-text-muted)",
-          fontSize: "var(--font-sm)",
-          marginBottom: "var(--space-lg)",
-          padding: "var(--space-sm) 0",
-        }}
-      >
-        ← Back
-      </button>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-lg)" }}>
+        <button
+          onClick={() => navigate(-1)}
+          style={{ color: "var(--color-text-muted)", fontSize: "var(--font-sm)", padding: "var(--space-sm) 0" }}
+        >
+          ← Back
+        </button>
+        <button
+          onClick={handleMessage}
+          style={{
+            display: "flex", alignItems: "center", gap: 6,
+            padding: "10px 20px",
+            background: "#800020", color: "#fff",
+            borderRadius: 10, fontSize: 13, fontWeight: 700,
+            fontFamily: "'Noto Serif', Georgia, serif",
+            letterSpacing: "0.04em",
+          }}
+        >
+          💬 Message
+        </button>
+      </div>
 
       <div
         className="animate-fade-in"
