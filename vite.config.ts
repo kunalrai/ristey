@@ -8,19 +8,20 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["icons/*.png", "offline.html"],
+      includeAssets: ["icons/*.png", "favicon.png", "offline.html"],
       manifest: {
-        name: "Ristey",
-        short_name: "Ristey",
-        description: "Find your perfect match.",
+        name: "The Heritage Curator",
+        short_name: "Heritage",
+        description: "Curated matchmaking rooted in cultural heritage and family values.",
         start_url: "/",
         display: "standalone",
-        background_color: "#e8e0e8",
+        background_color: "#500010",
         theme_color: "#800020",
         orientation: "portrait-primary",
         icons: [
-          { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
-          { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+          { src: "/icons/icon-192.png",          sizes: "192x192", type: "image/png" },
+          { src: "/icons/icon-512.png",          sizes: "512x512", type: "image/png" },
+          { src: "/icons/apple-touch-icon.png",  sizes: "180x180", type: "image/png" },
           {
             src: "/icons/icon-512-maskable.png",
             sizes: "512x512",
