@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { useNavigate } from "react-router-dom";
 import { useClerk } from "@clerk/clerk-react";
@@ -21,11 +21,38 @@ export default function ProfilePage() {
   const user = useQuery(api.users.getCurrentUser);
   const profileAnswers = useQuery(api.profiles.getProfileAnswers, {});
   const updateName = useMutation(api.users.updateDisplayName);
+  const generateUploadUrl = useMutation(api.users.generateAvatarUploadUrl);
+  const updateAvatar = useMutation(api.users.updateAvatar);
   const navigate = useNavigate();
   const { signOut } = useClerk();
 
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState("");
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarClick = () => {
+    if (!uploadingAvatar) fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingAvatar(true);
+    try {
+      const uploadUrl = await generateUploadUrl();
+      const res = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+      const { storageId } = await res.json();
+      await updateAvatar({ storageId });
+    } finally {
+      setUploadingAvatar(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   if (!user || profileAnswers === undefined) {
     return (
@@ -76,39 +103,76 @@ export default function ProfilePage() {
           marginBottom: "var(--space-md)",
         }}
       >
-        {user.avatarUrl ? (
-          <img
-            src={user.avatarUrl}
-            alt={user.displayName}
-            style={{
-              width: 80,
-              height: 80,
-              borderRadius: "50%",
-              objectFit: "cover",
-              margin: "0 auto var(--space-md)",
-              display: "block",
-            }}
-          />
-        ) : (
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: "none" }}
+          onChange={handleFileChange}
+        />
+        <div
+          onClick={handleAvatarClick}
+          style={{
+            position: "relative",
+            width: 80,
+            height: 80,
+            margin: "0 auto var(--space-md)",
+            cursor: uploadingAvatar ? "default" : "pointer",
+          }}
+        >
+          {user.avatarUrl ? (
+            <img
+              src={user.avatarUrl}
+              alt={user.displayName}
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: "50%",
+                objectFit: "cover",
+                display: "block",
+                opacity: uploadingAvatar ? 0.5 : 1,
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: "50%",
+                background:
+                  "linear-gradient(135deg, var(--color-primary-dark), var(--color-primary-light))",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "var(--font-xl)",
+                fontWeight: 700,
+                color: "#fff",
+                opacity: uploadingAvatar ? 0.5 : 1,
+              }}
+            >
+              {initials}
+            </div>
+          )}
+          {/* Camera overlay */}
           <div
             style={{
-              width: 80,
-              height: 80,
+              position: "absolute",
+              bottom: 0,
+              right: 0,
+              width: 26,
+              height: 26,
               borderRadius: "50%",
-              background:
-                "linear-gradient(135deg, var(--color-primary-dark), var(--color-primary-light))",
+              background: "var(--color-primary)",
+              border: "2px solid var(--color-bg-card)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: "var(--font-xl)",
-              fontWeight: 700,
-              color: "#fff",
-              margin: "0 auto var(--space-md)",
+              fontSize: 13,
             }}
           >
-            {initials}
+            {uploadingAvatar ? "⏳" : "📷"}
           </div>
-        )}
+        </div>
 
         {editingName ? (
           <div style={{ display: "flex", gap: "var(--space-sm)" }}>

@@ -13,6 +13,7 @@ import type * as matching from "../matching.js";
 import type * as preferences from "../preferences.js";
 import type * as profiles from "../profiles.js";
 import type * as questions from "../questions.js";
+import type * as seed from "../seed.js";
 import type * as users from "../users.js";
 
 import type {
@@ -27,6 +28,7 @@ declare const fullApi: ApiFromModules<{
   preferences: typeof preferences;
   profiles: typeof profiles;
   questions: typeof questions;
+  seed: typeof seed;
   users: typeof users;
 }>;
 

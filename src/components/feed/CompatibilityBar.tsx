@@ -63,8 +63,8 @@ export default function CompatibilityBar({ score, size = "sm" }: CompatibilityBa
           }}
         />
       </div>
-      <span style={{ fontSize: "var(--font-sm)", fontWeight: 700, color, minWidth: 36 }}>
-        {Math.round(score)}%
+      <span style={{ fontSize: "var(--font-sm)", fontWeight: 700, color, minWidth: 40 }}>
+        {Math.round(score)}% match
       </span>
     </div>
   );

@@ -72,25 +72,51 @@ export default function MatchCard({
         }}
       >
         <div style={{ display: "flex", gap: "var(--space-md)", alignItems: "flex-start" }}>
-          {/* Avatar */}
-          <div
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: "50%",
-              background: avatarUrl
-                ? `url(${avatarUrl}) center/cover`
-                : "linear-gradient(135deg, var(--color-primary-dark), var(--color-primary-light))",
-              flexShrink: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "var(--font-md)",
-              fontWeight: 700,
-              color: "#fff",
-            }}
-          >
-            {!avatarUrl && initials}
+          {/* Avatar + score badge */}
+          <div style={{ position: "relative", flexShrink: 0, width: 56, height: 56 }}>
+            <div
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: "50%",
+                background: avatarUrl
+                  ? `url(${avatarUrl}) center/cover`
+                  : "linear-gradient(135deg, var(--color-primary-dark), var(--color-primary-light))",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "var(--font-md)",
+                fontWeight: 700,
+                color: "#fff",
+              }}
+            >
+              {!avatarUrl && initials}
+            </div>
+            <div
+              style={{
+                position: "absolute",
+                bottom: -4,
+                left: "50%",
+                transform: "translateX(-50%)",
+                background:
+                  mutualScore >= 80
+                    ? "var(--color-success)"
+                    : mutualScore >= 60
+                    ? "var(--color-primary)"
+                    : mutualScore >= 40
+                    ? "var(--color-warning)"
+                    : "var(--color-text-subtle)",
+                color: "#fff",
+                fontSize: 10,
+                fontWeight: 800,
+                padding: "2px 6px",
+                borderRadius: "var(--radius-full)",
+                border: "2px solid var(--color-bg-card)",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {Math.round(mutualScore)}%
+            </div>
           </div>
 
           {/* Info */}
