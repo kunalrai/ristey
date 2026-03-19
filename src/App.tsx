@@ -11,6 +11,19 @@ import MatchDetailPage from "./pages/MatchDetailPage";
 import AppShell from "./components/layout/AppShell";
 import AdminPage from "./pages/AdminPage";
 
+const ADMIN_EMAIL = "ikunalrai@gmail.com";
+
+function AdminGuard({ children }: { children: React.ReactNode }) {
+  const { isLoading, isAuthenticated } = useConvexAuth();
+  const user = useQuery(api.users.getCurrentUser);
+
+  if (isLoading || user === undefined) return null;
+  if (!isAuthenticated || !user) return <Navigate to="/" replace />;
+  if (user.email !== ADMIN_EMAIL) return <Navigate to="/" replace />;
+
+  return <>{children}</>;
+}
+
 function AuthGate({ children }: { children: React.ReactNode }) {
   const { isLoading, isAuthenticated } = useConvexAuth();
   const user = useQuery(api.users.getCurrentUser);
@@ -65,7 +78,7 @@ export default function App() {
           path="/sso-callback"
           element={<AuthenticateWithRedirectCallback />}
         />
-        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/admin" element={<AdminGuard><AdminPage /></AdminGuard>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

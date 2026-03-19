@@ -2,9 +2,12 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { QueryCtx, MutationCtx } from "./_generated/server";
 
+const ADMIN_EMAIL = "ikunalrai@gmail.com";
+
 async function requireAdmin(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Not authenticated");
+  if (identity.email !== ADMIN_EMAIL) throw new Error("Forbidden");
   return identity;
 }
 
