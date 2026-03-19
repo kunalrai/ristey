@@ -22,5 +22,6 @@
     }
   },
   "include": ["src"],
+  "exclude": ["convex"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

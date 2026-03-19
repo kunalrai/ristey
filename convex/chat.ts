@@ -1,4 +1,5 @@
 import { mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
 
@@ -67,6 +68,18 @@ export const sendMessage = mutation({
       unreadA: isA ? convo.unreadA : convo.unreadA + 1,
       unreadB: isA ? convo.unreadB + 1 : convo.unreadB,
     });
+
+    // If the other party is a seed persona, schedule an AI reply
+    const otherId = isA ? convo.userB : convo.userA;
+    const otherUser = await ctx.db.get(otherId);
+    if (otherUser?.tokenIdentifier?.startsWith("seed_test_girl_")) {
+      // Random realistic delay: 2–7 seconds
+      const delayMs = Math.floor(Math.random() * 5000) + 2000;
+      await ctx.scheduler.runAfter(delayMs, internal.ai.respondAsPersona, {
+        conversationId,
+        seedUserId: otherId,
+      });
+    }
   },
 });
 

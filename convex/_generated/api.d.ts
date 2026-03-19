@@ -9,6 +9,8 @@
  */
 
 import type * as admin from "../admin.js";
+import type * as ai from "../ai.js";
+import type * as aiHelpers from "../aiHelpers.js";
 import type * as chat from "../chat.js";
 import type * as matches from "../matches.js";
 import type * as matching from "../matching.js";
@@ -26,6 +28,8 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
+  ai: typeof ai;
+  aiHelpers: typeof aiHelpers;
   chat: typeof chat;
   matches: typeof matches;
   matching: typeof matching;
