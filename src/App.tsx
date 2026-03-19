@@ -9,6 +9,7 @@ import FeedPage from "./pages/FeedPage";
 import ProfilePage from "./pages/ProfilePage";
 import MatchDetailPage from "./pages/MatchDetailPage";
 import MessagesPage from "./pages/MessagesPage";
+import MatchesPage from "./pages/MatchesPage";
 import ChatPage from "./pages/ChatPage";
 import AppShell from "./components/layout/AppShell";
 import AdminPage from "./pages/AdminPage";
@@ -73,6 +74,7 @@ export default function App() {
         >
           <Route path="/feed" element={<FeedPage />} />
           <Route path="/messages" element={<MessagesPage />} />
+          <Route path="/matches" element={<MatchesPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/match/:userId" element={<MatchDetailPage />} />
         </Route>
