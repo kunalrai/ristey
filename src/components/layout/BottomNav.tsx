@@ -1,4 +1,8 @@
 import { NavLink } from "react-router-dom";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+
+const ADMIN_EMAIL = "ikunalrai@gmail.com";
 
 const NAV_ITEMS = [
   { to: "/feed", label: "Matches", icon: "💞" },
@@ -7,6 +11,13 @@ const NAV_ITEMS = [
 ];
 
 export default function BottomNav() {
+  const user = useQuery(api.users.getCurrentUser);
+  const isAdmin = user?.email === ADMIN_EMAIL;
+
+  const items = isAdmin
+    ? [...NAV_ITEMS, { to: "/admin", label: "Admin", icon: "🛡️" }]
+    : NAV_ITEMS;
+
   return (
     <nav
       style={{
@@ -24,7 +35,7 @@ export default function BottomNav() {
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
       }}
     >
-      {NAV_ITEMS.map((item) => (
+      {items.map((item) => (
         <NavLink
           key={item.to}
           to={item.to}
