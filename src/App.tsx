@@ -9,6 +9,7 @@ import FeedPage from "./pages/FeedPage";
 import ProfilePage from "./pages/ProfilePage";
 import MatchDetailPage from "./pages/MatchDetailPage";
 import AppShell from "./components/layout/AppShell";
+import AdminPage from "./pages/AdminPage";
 
 function AuthGate({ children }: { children: React.ReactNode }) {
   const { isLoading, isAuthenticated } = useConvexAuth();
@@ -64,6 +65,7 @@ export default function App() {
           path="/sso-callback"
           element={<AuthenticateWithRedirectCallback />}
         />
+        <Route path="/admin" element={<AdminPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
