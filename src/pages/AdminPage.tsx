@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
@@ -82,6 +82,13 @@ export default function AdminPage() {
 
   const [view, setView] = useState<"dashboard" | "users">("dashboard");
   const [navOpen, setNavOpen] = useState(false);
+  const [latencyMs, setLatencyMs] = useState<number | null>(null);
+  const mountTime = useRef(Date.now());
+  useEffect(() => {
+    if (stats !== undefined && latencyMs === null) {
+      setLatencyMs(Date.now() - mountTime.current);
+    }
+  }, [stats, latencyMs]);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [search, setSearch] = useState("");
@@ -334,6 +341,97 @@ export default function AdminPage() {
                 />
               </button>
             </div>
+
+            {/* System Health */}
+            <div style={{ marginTop: 32 }}>
+              <h2 style={{ fontSize: 22, fontWeight: 800, color: "#1a140e", marginBottom: 16 }}>
+                System Health
+              </h2>
+              <div style={{ background: CARD_BG, borderRadius: 14, overflow: "hidden" }}>
+                {/* Matching Engine row */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "16px 20px",
+                    borderBottom: "1px solid rgba(0,0,0,0.06)",
+                  }}
+                >
+                  <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#7a6e60" }}>
+                    Matching Engine
+                  </span>
+                  <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#2e7d5a", fontWeight: 600 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#4caf73", display: "inline-block" }} />
+                    {stats !== undefined ? "Optimal" : "Loading…"}
+                  </span>
+                </div>
+                {/* DB Latency row */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "16px 20px",
+                    borderBottom: "1px solid rgba(0,0,0,0.06)",
+                  }}
+                >
+                  <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#7a6e60" }}>
+                    Database Latency
+                  </span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: GOLD }}>
+                    {latencyMs !== null ? `${latencyMs}ms` : "—"}
+                  </span>
+                </div>
+                {/* Quote */}
+                <div style={{ padding: "14px 20px" }}>
+                  <p style={{ fontSize: 12, fontStyle: "italic", color: "#9a8e80", lineHeight: 1.5 }}>
+                    "Heritage Curator infrastructure is operating at peak historical performance."
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Membership Reach */}
+            {stats && stats.totalUsers > 0 && (
+              <div
+                style={{
+                  marginTop: 16,
+                  background: CRIMSON,
+                  borderRadius: 14,
+                  padding: "20px 20px 24px",
+                  marginBottom: 8,
+                }}
+              >
+                <h2 style={{ fontSize: 18, fontWeight: 800, color: "#fff", marginBottom: 20 }}>
+                  Membership Reach
+                </h2>
+                {[
+                  {
+                    label: "Onboarding Complete",
+                    pct: Math.round((stats.onboarded / stats.totalUsers) * 100),
+                  },
+                  {
+                    label: "Preferences Set",
+                    pct: Math.round((stats.prefsDone / stats.totalUsers) * 100),
+                  },
+                ].map(({ label, pct }) => (
+                  <div key={label} style={{ marginBottom: 16 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)" }}>
+                        {label}
+                      </span>
+                      <span style={{ fontSize: 12, fontWeight: 800, color: GOLD }}>
+                        {pct}%
+                      </span>
+                    </div>
+                    <div style={{ height: 3, background: "rgba(255,255,255,0.15)", borderRadius: 999, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${pct}%`, background: GOLD, borderRadius: 999, transition: "width 0.8s ease" }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </>
         ) : (
           <>
