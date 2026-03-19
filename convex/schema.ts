@@ -7,6 +7,7 @@ export default defineSchema({
     email: v.optional(v.string()),
     displayName: v.string(),
     avatarUrl: v.optional(v.string()),
+    gender: v.optional(v.string()), // "male" | "female" | "other"
     onboardingComplete: v.boolean(),
     preferencesComplete: v.boolean(),
     createdAt: v.number(),

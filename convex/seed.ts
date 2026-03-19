@@ -307,6 +307,7 @@ export const seedTestGirls = mutation({
         tokenIdentifier,
         displayName: girl.displayName,
         avatarUrl: girl.avatarUrl,
+        gender: "female",
         onboardingComplete: true,
         preferencesComplete: true,
         createdAt: now,
@@ -338,6 +339,20 @@ export const seedTestGirls = mutation({
     }
 
     return { created };
+  },
+});
+
+export const patchSeedGenders = mutation({
+  args: {},
+  handler: async (ctx, _args) => {
+    for (let i = 1; i <= TEST_GIRLS.length; i++) {
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_token", (q) => q.eq("tokenIdentifier", `seed_test_girl_${i}`))
+        .unique();
+      if (user) await ctx.db.patch(user._id, { gender: "female" });
+    }
+    return { ok: true };
   },
 });
 

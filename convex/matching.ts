@@ -136,11 +136,14 @@ function harmonicMean(a: number, b: number): number {
 export const recomputeMatchesForUser = internalAction({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
+    const me = await ctx.runQuery(internal.matching.getUserById, { userId: args.userId });
+    const myGender = (me as { gender?: string } | null)?.gender;
+
     const [myProfile, myPrefs, questions, allUsers] = await Promise.all([
       ctx.runQuery(internal.matching.getProfileForUser, { userId: args.userId }),
       ctx.runQuery(internal.matching.getPrefsForUser, { userId: args.userId }),
       ctx.runQuery(api.questions.getAllQuestions, {}),
-      ctx.runQuery(internal.matching.getOnboardedUsers, {}),
+      ctx.runQuery(internal.matching.getOnboardedUsers, { excludeGender: myGender }),
     ]);
 
     const candidates = (allUsers as Array<{ _id: Id<"users"> }>).filter(
@@ -191,12 +194,21 @@ export const recomputeMatchesForUser = internalAction({
 });
 
 export const getOnboardedUsers = internalQuery({
-  args: {},
-  handler: async (ctx) => {
-    return await ctx.db
+  args: { excludeGender: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const users = await ctx.db
       .query("users")
       .withIndex("by_onboarding", (q) => q.eq("onboardingComplete", true))
       .collect();
+    if (!args.excludeGender) return users;
+    return users.filter((u) => !u.gender || u.gender !== args.excludeGender);
+  },
+});
+
+export const getUserById = internalQuery({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.userId);
   },
 });
 

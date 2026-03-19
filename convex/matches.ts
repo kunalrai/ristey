@@ -20,10 +20,14 @@ export const getMatchFeed = query({
       .order("desc")
       .paginate(args.paginationOpts);
 
+    const oppositeGender = me.gender === "male" ? "female" : me.gender === "female" ? "male" : null;
+
     const enriched = await Promise.all(
       result.page.map(async (score) => {
         const otherUser = await ctx.db.get(score.userB);
         if (!otherUser) return null;
+        // filter to opposite gender only (skip if either side has no gender set)
+        if (oppositeGender && otherUser.gender && otherUser.gender !== oppositeGender) return null;
 
         const profileRows = await ctx.db
           .query("profileAnswers")

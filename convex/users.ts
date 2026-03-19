@@ -68,6 +68,22 @@ export const updateDisplayName = mutation({
   },
 });
 
+export const updateGender = mutation({
+  args: { gender: v.string() },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+      .unique();
+    if (!user) throw new Error("User not found");
+
+    await ctx.db.patch(user._id, { gender: args.gender });
+  },
+});
+
 export const generateAvatarUploadUrl = mutation({
   args: {},
   handler: async (ctx) => {

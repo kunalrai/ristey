@@ -5,14 +5,98 @@ import { api } from "../../convex/_generated/api";
 import QuestionStep from "../components/ui/QuestionStep";
 import StepIndicator from "../components/ui/StepIndicator";
 
+const GENDERS = [
+  { value: "male", label: "Man", emoji: "👨" },
+  { value: "female", label: "Woman", emoji: "👩" },
+  { value: "other", label: "Other", emoji: "🧑" },
+];
+
 export default function OnboardingPage() {
   const questions = useQuery(api.questions.getAllQuestions) ?? [];
   const saveAnswers = useMutation(api.profiles.saveProfileAnswers);
+  const updateGender = useMutation(api.users.updateGender);
   const navigate = useNavigate();
 
+  const [gender, setGender] = useState("");
+  const [genderSaved, setGenderSaved] = useState(false);
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+
+  // Gender picker screen
+  if (!genderSaved) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          padding: "var(--space-xl) var(--space-md)",
+          maxWidth: 480,
+          margin: "0 auto",
+        }}
+      >
+        <h1
+          style={{
+            fontSize: "var(--font-lg)",
+            fontWeight: 800,
+            color: "var(--color-primary)",
+            marginBottom: "var(--space-sm)",
+          }}
+        >
+          About You
+        </h1>
+        <p style={{ color: "var(--color-text-muted)", marginBottom: "var(--space-xl)" }}>
+          I am a…
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-md)", flex: 1 }}>
+          {GENDERS.map((g) => (
+            <button
+              key={g.value}
+              onClick={() => setGender(g.value)}
+              style={{
+                padding: "var(--space-lg)",
+                borderRadius: "var(--radius-xl)",
+                border: `2px solid ${gender === g.value ? "var(--color-primary)" : "var(--color-border)"}`,
+                background: gender === g.value ? "rgba(224,62,107,0.1)" : "var(--color-bg-card)",
+                display: "flex",
+                alignItems: "center",
+                gap: "var(--space-md)",
+                fontSize: "var(--font-md)",
+                fontWeight: 600,
+                color: gender === g.value ? "var(--color-primary)" : "var(--color-text)",
+                transition: "all 0.15s",
+              }}
+            >
+              <span style={{ fontSize: 32 }}>{g.emoji}</span>
+              {g.label}
+            </button>
+          ))}
+        </div>
+        <button
+          disabled={!gender || saving}
+          onClick={async () => {
+            setSaving(true);
+            await updateGender({ gender });
+            setSaving(false);
+            setGenderSaved(true);
+          }}
+          style={{
+            marginTop: "var(--space-xl)",
+            padding: 16,
+            borderRadius: "var(--radius-md)",
+            background: gender ? "var(--color-primary)" : "var(--color-bg-elevated)",
+            color: gender ? "#fff" : "var(--color-text-subtle)",
+            fontSize: "var(--font-base)",
+            fontWeight: 700,
+            cursor: gender ? "pointer" : "not-allowed",
+          }}
+        >
+          {saving ? "Saving…" : "Continue →"}
+        </button>
+      </div>
+    );
+  }
 
   if (questions.length === 0) {
     return (

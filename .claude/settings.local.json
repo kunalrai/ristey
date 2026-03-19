@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh repo:*)",
+      "Bash(git push:*)",
+      "Bash(npm create:*)",
+      "Bash(npm init:*)",
+      "Bash(ls /c/apps/repo/ristey/.env*)",
+      "Bash(npm install:*)",
+      "Bash(npx convex:*)",
+      "Bash(npm run:*)",
+      "Bash(node -e \"const c = require\\(''./node_modules/convex/react-clerk/index.js''\\); console.log\\(Object.keys\\(c\\)\\)\")",
+      "Bash(node -e \"import\\(''./node_modules/convex/react-clerk/index.js''\\).then\\(c => console.log\\(Object.keys\\(c\\)\\)\\)\")",
+      "Bash(npx playwright:*)",
+      "Bash(ls /c/apps/repo/ristey/playwright.config.*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(node:*)",
+      "Bash(npx tsc:*)"
+    ]
+  }
+}
