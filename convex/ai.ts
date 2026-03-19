@@ -1,11 +1,13 @@
 "use node";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 declare const process: { env: Record<string, string | undefined> };
 
 import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
+
+// Model to use via OpenRouter — change to any model on openrouter.ai/models
+const MODEL = "google/gemini-2.0-flash-001";
 
 function fmt(raw: string | undefined): string {
   if (!raw) return "";
@@ -74,45 +76,50 @@ export const respondAsPersona = internalAction({
     if (context.lastSenderId === seedUserId) return;
     if (context.recentMessages.length === 0) return;
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
+    const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
-      console.error("ANTHROPIC_API_KEY not set — add it in Convex dashboard → Settings → Environment Variables");
+      console.error("OPENROUTER_API_KEY not set — add it in Convex dashboard → Settings → Environment Variables");
       return;
     }
 
     const systemPrompt = buildSystemPrompt(context.seedUser.displayName, context.profile);
 
-    // Build Claude message history (alternating user/assistant)
-    const claudeMessages = context.recentMessages.map((m) => ({
-      role: (m.isSeed ? "assistant" : "user") as "user" | "assistant",
-      content: m.text,
-    }));
+    // OpenRouter uses OpenAI-compatible chat completions format
+    const messages = [
+      { role: "system", content: systemPrompt },
+      ...context.recentMessages.map((m) => ({
+        role: (m.isSeed ? "assistant" : "user") as "system" | "user" | "assistant",
+        content: m.text,
+      })),
+    ];
 
-    // Must end with a user message for Claude to respond
-    if (claudeMessages[claudeMessages.length - 1]?.role !== "user") return;
+    // Must end with a user message
+    if (messages[messages.length - 1]?.role !== "user") return;
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
+        "Authorization": `Bearer ${apiKey}`,
+        "HTTP-Referer": "https://heritagecurator.app",
+        "X-Title": "Heritage Curator",
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
+        model: MODEL,
         max_tokens: 180,
-        system: systemPrompt,
-        messages: claudeMessages,
+        messages,
       }),
     });
 
     if (!response.ok) {
-      console.error("Anthropic API error:", response.status, await response.text());
+      console.error("OpenRouter API error:", response.status, await response.text());
       return;
     }
 
-    const data = await response.json() as { content?: { type: string; text: string }[] };
-    const text = data.content?.find((c) => c.type === "text")?.text?.trim();
+    const data = await response.json() as {
+      choices?: { message?: { content?: string } }[];
+    };
+    const text = data.choices?.[0]?.message?.content?.trim();
     if (!text) return;
 
     await ctx.runMutation(internal.aiHelpers.sendAIMessage, {
