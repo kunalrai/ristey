@@ -78,7 +78,9 @@ export default function App() {
           path="/sso-callback"
           element={<AuthenticateWithRedirectCallback />}
         />
-        <Route path="/admin" element={<AdminGuard><AdminPage /></AdminGuard>} />
+        <Route element={<AdminGuard><AppShell /></AdminGuard>}>
+          <Route path="/admin" element={<AdminPage />} />
+        </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
