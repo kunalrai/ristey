@@ -3,7 +3,7 @@ import { mutation } from "./_generated/server";
 const TEST_GIRLS = [
   {
     displayName: "Priya Sharma",
-    avatarUrl: "https://i.pravatar.cc/150?img=47",
+    avatarUrl: "https://randomuser.me/api/portraits/women/44.jpg",
     profile: {
       location: "north_india",
       caste: "brahmin",
@@ -31,7 +31,7 @@ const TEST_GIRLS = [
   },
   {
     displayName: "Ananya Iyer",
-    avatarUrl: "https://i.pravatar.cc/150?img=48",
+    avatarUrl: "https://randomuser.me/api/portraits/women/46.jpg",
     profile: {
       location: "south_india",
       caste: "brahmin",
@@ -59,7 +59,7 @@ const TEST_GIRLS = [
   },
   {
     displayName: "Nisha Patel",
-    avatarUrl: "https://i.pravatar.cc/150?img=49",
+    avatarUrl: "https://randomuser.me/api/portraits/women/48.jpg",
     profile: {
       location: "west_india",
       caste: "vaishya",
@@ -87,7 +87,7 @@ const TEST_GIRLS = [
   },
   {
     displayName: "Kavya Reddy",
-    avatarUrl: "https://i.pravatar.cc/150?img=50",
+    avatarUrl: "https://randomuser.me/api/portraits/women/50.jpg",
     profile: {
       location: "south_india",
       caste: "other_hindu",
@@ -115,7 +115,7 @@ const TEST_GIRLS = [
   },
   {
     displayName: "Meera Singh",
-    avatarUrl: "https://i.pravatar.cc/150?img=51",
+    avatarUrl: "https://randomuser.me/api/portraits/women/52.jpg",
     profile: {
       location: "north_india",
       caste: "kshatriya",
@@ -143,7 +143,7 @@ const TEST_GIRLS = [
   },
   {
     displayName: "Zara Khan",
-    avatarUrl: "https://i.pravatar.cc/150?img=52",
+    avatarUrl: "https://randomuser.me/api/portraits/women/54.jpg",
     profile: {
       location: "north_india",
       caste: "muslim",
@@ -171,7 +171,7 @@ const TEST_GIRLS = [
   },
   {
     displayName: "Simran Kaur",
-    avatarUrl: "https://i.pravatar.cc/150?img=53",
+    avatarUrl: "https://randomuser.me/api/portraits/women/56.jpg",
     profile: {
       location: "north_india",
       caste: "sikh",
@@ -199,7 +199,7 @@ const TEST_GIRLS = [
   },
   {
     displayName: "Riya Joshi",
-    avatarUrl: "https://i.pravatar.cc/150?img=54",
+    avatarUrl: "https://randomuser.me/api/portraits/women/58.jpg",
     profile: {
       location: "west_india",
       caste: "brahmin",
@@ -227,7 +227,7 @@ const TEST_GIRLS = [
   },
   {
     displayName: "Pooja Nair",
-    avatarUrl: "https://i.pravatar.cc/150?img=55",
+    avatarUrl: "https://randomuser.me/api/portraits/women/60.jpg",
     profile: {
       location: "south_india",
       caste: "other_hindu",
@@ -255,7 +255,7 @@ const TEST_GIRLS = [
   },
   {
     displayName: "Divya Menon",
-    avatarUrl: "https://i.pravatar.cc/150?img=56",
+    avatarUrl: "https://randomuser.me/api/portraits/women/62.jpg",
     profile: {
       location: "abroad",
       caste: "other_hindu",
@@ -339,6 +339,24 @@ export const seedTestGirls = mutation({
     }
 
     return { created };
+  },
+});
+
+export const patchSeedAvatars = mutation({
+  args: {},
+  handler: async (ctx, _args) => {
+    const updated: string[] = [];
+    for (let i = 0; i < TEST_GIRLS.length; i++) {
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_token", (q) => q.eq("tokenIdentifier", `seed_test_girl_${i + 1}`))
+        .unique();
+      if (user) {
+        await ctx.db.patch(user._id, { avatarUrl: TEST_GIRLS[i].avatarUrl });
+        updated.push(TEST_GIRLS[i].displayName);
+      }
+    }
+    return { updated };
   },
 });
 
