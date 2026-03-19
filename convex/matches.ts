@@ -55,6 +55,25 @@ export const getMatchFeed = query({
   },
 });
 
+export const getBestMatchScore = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const me = await ctx.db
+      .query("users")
+      .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+      .unique();
+    if (!me) return null;
+    const top = await ctx.db
+      .query("matchScores")
+      .withIndex("by_user_a", (q) => q.eq("userA", me._id))
+      .order("desc")
+      .first();
+    return top ? Math.round(top.mutualScore) : null;
+  },
+});
+
 export const getMatchDetail = query({
   args: { targetUserId: v.id("users") },
   handler: async (ctx, args) => {
