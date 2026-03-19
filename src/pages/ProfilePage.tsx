@@ -41,6 +41,7 @@ export default function ProfilePage() {
   const user          = useQuery(api.users.getCurrentUser);
   const profileAnswers = useQuery(api.profiles.getProfileAnswers, {});
   const bestMatch     = useQuery(api.matches.getBestMatchScore);
+  const membership    = useQuery(api.users.getMembership);
   const updateName    = useMutation(api.users.updateDisplayName);
   const generateUploadUrl = useMutation(api.users.generateAvatarUploadUrl);
   const updateAvatar  = useMutation(api.users.updateAvatar);
@@ -218,6 +219,58 @@ export default function ProfilePage() {
         ))}
       </div>
 
+      {/* ── Membership Banner ── */}
+      {membership && (
+        <div
+          onClick={() => navigate("/membership")}
+          style={{
+            margin: "16px 20px 0",
+            maxWidth: 520,
+            marginLeft: "auto",
+            marginRight: "auto",
+            background: membership.tier === "free"
+              ? `linear-gradient(135deg, #1C2B3A, #2a3f52)`
+              : `linear-gradient(135deg, ${CRIMSON}, #3a0010)`,
+            borderRadius: 14,
+            padding: "16px 20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            cursor: "pointer",
+          }}
+        >
+          <div>
+            <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.6)", marginBottom: 4 }}>
+              {membership.tier === "free" ? "Free Member" : "Active Membership"}
+            </div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", fontFamily: "Georgia, serif" }}>
+              {membership.tier === "free"
+                ? "Upgrade to Curator"
+                : membership.tier.charAt(0).toUpperCase() + membership.tier.slice(1) + " Plan"}
+            </div>
+            {membership.tier === "free" && (
+              <div style={{ fontSize: 11, color: GOLD, marginTop: 2 }}>
+                Unlock full profiles & messaging from ₹999/mo
+              </div>
+            )}
+            {membership.tier !== "free" && membership.expiresAt && (
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", marginTop: 2 }}>
+                Renews {new Date(membership.expiresAt).toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" })}
+              </div>
+            )}
+          </div>
+          <div style={{
+            background: membership.tier === "free" ? GOLD : "rgba(255,255,255,0.15)",
+            color: membership.tier === "free" ? "#1a140e" : "#fff",
+            padding: "8px 16px", borderRadius: 8,
+            fontSize: 12, fontWeight: 800, fontFamily: "'Inter', sans-serif",
+            whiteSpace: "nowrap",
+          }}>
+            {membership.tier === "free" ? "Upgrade →" : "Manage →"}
+          </div>
+        </div>
+      )}
+
       <div style={{ padding: "0 20px", maxWidth: 520, margin: "0 auto" }}>
 
         {/* ── About Me ── */}
@@ -285,6 +338,19 @@ export default function ProfilePage() {
           >
             Match Preferences
             <span style={{ width: 10, height: 10, borderRadius: "50%", background: GOLD, display: "inline-block" }} />
+          </button>
+
+          <button
+            onClick={() => navigate("/membership")}
+            style={{
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              padding: "16px 20px", background: CARD_BG, color: "#3a2e22",
+              borderRadius: 12, fontSize: 12, fontWeight: 800,
+              letterSpacing: "0.08em", textTransform: "uppercase",
+            }}
+          >
+            Membership & Plans
+            <span style={{ fontSize: 16, fontWeight: 400, color: CRIMSON }}>♛</span>
           </button>
 
           <button
