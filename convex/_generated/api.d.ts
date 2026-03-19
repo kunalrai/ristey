@@ -9,6 +9,7 @@
  */
 
 import type * as admin from "../admin.js";
+import type * as chat from "../chat.js";
 import type * as matches from "../matches.js";
 import type * as matching from "../matching.js";
 import type * as preferences from "../preferences.js";
@@ -25,6 +26,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
+  chat: typeof chat;
   matches: typeof matches;
   matching: typeof matching;
   preferences: typeof preferences;
