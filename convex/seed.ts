@@ -227,7 +227,7 @@ const TEST_GIRLS = [
   },
   {
     displayName: "Pooja Nair",
-    avatarUrl: "https://images.unsplash.com/photo-1502323703975-b53c8a464aeb?w=400&h=400&fit=crop&crop=face&q=80",
+    avatarUrl: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=400&h=400&fit=crop&crop=face&q=80",
     profile: {
       location: "south_india",
       caste: "other_hindu",
