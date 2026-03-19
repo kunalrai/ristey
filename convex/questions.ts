@@ -1,4 +1,5 @@
 import { mutation, query } from "./_generated/server";
+import { v } from "convex/values";
 
 const QUESTION_BANK = [
   {
@@ -192,5 +193,26 @@ export const getAllQuestions = query({
   args: {},
   handler: async (ctx) => {
     return await ctx.db.query("questions").withIndex("by_order").collect();
+  },
+});
+
+export const updateQuestion = mutation({
+  args: {
+    id: v.id("questions"),
+    text: v.string(),
+    defaultWeight: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+      .unique();
+    if (!user || user.email !== "ikunalrai@gmail.com") throw new Error("Forbidden");
+    await ctx.db.patch(args.id, {
+      text: args.text,
+      defaultWeight: Math.min(10, Math.max(1, args.defaultWeight)),
+    });
   },
 });

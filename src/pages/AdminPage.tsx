@@ -78,9 +78,11 @@ function StatCard({
 export default function AdminPage() {
   const stats = useQuery(api.admin.getStats);
   const users = useQuery(api.admin.getAllUsers);
+  const questions = useQuery(api.questions.getAllQuestions);
   const deleteUser = useMutation(api.admin.deleteUser);
+  const updateQuestion = useMutation(api.questions.updateQuestion);
 
-  const [view, setView] = useState<"dashboard" | "users">("dashboard");
+  const [view, setView] = useState<"dashboard" | "users" | "questions">("dashboard");
   const [navOpen, setNavOpen] = useState(false);
   const [latencyMs, setLatencyMs] = useState<number | null>(null);
   const mountTime = useRef(Date.now());
@@ -92,6 +94,9 @@ export default function AdminPage() {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [search, setSearch] = useState("");
+  const [editingQ, setEditingQ] = useState<string | null>(null); // question _id being edited
+  const [qDraft, setQDraft] = useState<{ text: string; defaultWeight: number }>({ text: "", defaultWeight: 5 });
+  const [savingQ, setSavingQ] = useState(false);
 
   const handleDelete = async (userId: string) => {
     setDeleting(true);
@@ -211,6 +216,7 @@ export default function AdminPage() {
             </div>
             {[
               { label: "Dashboard", key: "dashboard" as const },
+              { label: "Questions", key: "questions" as const },
               { label: "All Users", key: "users" as const },
             ].map((item) => (
               <button
@@ -291,7 +297,7 @@ export default function AdminPage() {
             {/* Action Links */}
             <div style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 10 }}>
               <button
-                onClick={() => setView("users")}
+                onClick={() => setView("questions")}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -431,6 +437,145 @@ export default function AdminPage() {
                   </div>
                 ))}
               </div>
+            )}
+          </>
+        ) : view === "questions" ? (
+          <>
+            {/* Questions view */}
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+              <button onClick={() => setView("dashboard")} style={{ color: CRIMSON, fontSize: 20 }}>←</button>
+              <h1 style={{ fontSize: 26, fontWeight: 800, color: "#1a140e" }}>Questions</h1>
+              <span style={{ marginLeft: "auto", fontSize: 13, color: "#7a6e60" }}>
+                {questions?.length ?? "—"} questions
+              </span>
+            </div>
+
+            {!questions ? (
+              <div style={{ color: "#7a6e60" }}>Loading…</div>
+            ) : (
+              questions.map((q) => {
+                const isEditing = editingQ === q._id;
+                return (
+                  <div
+                    key={q._id}
+                    style={{
+                      background: CARD_BG,
+                      borderRadius: 12,
+                      padding: "16px 18px",
+                      marginBottom: 10,
+                    }}
+                  >
+                    {/* Header row */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                      <div>
+                        <span style={{
+                          fontSize: 9, fontWeight: 700, letterSpacing: "0.1em",
+                          textTransform: "uppercase", color: GOLD,
+                        }}>
+                          {q.category} · {q.type.replace("_", " ")}
+                        </span>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{
+                          fontSize: 11, fontWeight: 700, color: CRIMSON,
+                          background: "rgba(128,0,32,0.08)", padding: "2px 8px", borderRadius: 999,
+                        }}>
+                          Weight {isEditing ? qDraft.defaultWeight : q.defaultWeight}/10
+                        </span>
+                        {!isEditing && (
+                          <button
+                            onClick={() => {
+                              setEditingQ(q._id);
+                              setQDraft({ text: q.text, defaultWeight: q.defaultWeight });
+                            }}
+                            style={{ fontSize: 13, color: "#7a6e60", padding: "2px 6px" }}
+                          >
+                            ✎
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {isEditing ? (
+                      <div>
+                        <textarea
+                          value={qDraft.text}
+                          onChange={(e) => setQDraft((d) => ({ ...d, text: e.target.value }))}
+                          rows={2}
+                          style={{
+                            width: "100%", padding: "10px 12px",
+                            background: "#f5f0e6", border: `1.5px solid ${CRIMSON}`,
+                            borderRadius: 8, fontSize: 14, fontFamily: "Georgia, serif",
+                            color: "#1a140e", outline: "none", resize: "vertical",
+                            boxSizing: "border-box",
+                          }}
+                        />
+                        <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
+                          <label style={{ fontSize: 12, color: "#7a6e60", whiteSpace: "nowrap" }}>
+                            Default Weight
+                          </label>
+                          <input
+                            type="range" min={1} max={10}
+                            value={qDraft.defaultWeight}
+                            onChange={(e) => setQDraft((d) => ({ ...d, defaultWeight: Number(e.target.value) }))}
+                            style={{ flex: 1, accentColor: CRIMSON }}
+                          />
+                          <span style={{ fontSize: 14, fontWeight: 700, color: CRIMSON, minWidth: 20 }}>
+                            {qDraft.defaultWeight}
+                          </span>
+                        </div>
+                        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                          <button
+                            disabled={savingQ}
+                            onClick={async () => {
+                              setSavingQ(true);
+                              try {
+                                await updateQuestion({
+                                  id: q._id,
+                                  text: qDraft.text.trim(),
+                                  defaultWeight: qDraft.defaultWeight,
+                                });
+                                setEditingQ(null);
+                              } finally {
+                                setSavingQ(false);
+                              }
+                            }}
+                            style={{
+                              padding: "8px 18px", background: CRIMSON, color: "#fff",
+                              borderRadius: 8, fontSize: 13, fontWeight: 700,
+                            }}
+                          >
+                            {savingQ ? "Saving…" : "Save"}
+                          </button>
+                          <button
+                            onClick={() => setEditingQ(null)}
+                            style={{ padding: "8px 14px", fontSize: 13, color: "#7a6e60" }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <p style={{ fontSize: 14, color: "#1a140e", lineHeight: 1.5, marginBottom: 8 }}>
+                          {q.text}
+                        </p>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                          {q.options?.map((opt) => (
+                            <span key={opt.value} style={{
+                              fontSize: 11, padding: "2px 8px",
+                              background: "rgba(0,0,0,0.05)", borderRadius: 999,
+                              color: "#7a6e60",
+                            }}>
+                              {opt.label}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
             )}
           </>
         ) : (
