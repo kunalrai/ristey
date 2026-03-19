@@ -7,8 +7,14 @@ const ADMIN_EMAIL = "ikunalrai@gmail.com";
 async function requireAdmin(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Not authenticated");
-  if (identity.email !== ADMIN_EMAIL) throw new Error("Forbidden");
-  return identity;
+
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+    .unique();
+
+  if (!user || user.email !== ADMIN_EMAIL) throw new Error("Forbidden");
+  return user;
 }
 
 export const getStats = query({
