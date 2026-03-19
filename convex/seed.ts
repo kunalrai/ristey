@@ -3,7 +3,7 @@ import { mutation } from "./_generated/server";
 const TEST_GIRLS = [
   {
     displayName: "Priya Sharma",
-    avatarUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+    avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&crop=face&q=80",
     profile: {
       location: "north_india",
       caste: "brahmin",
@@ -31,7 +31,7 @@ const TEST_GIRLS = [
   },
   {
     displayName: "Ananya Iyer",
-    avatarUrl: "https://randomuser.me/api/portraits/women/46.jpg",
+    avatarUrl: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&h=400&fit=crop&crop=face&q=80",
     profile: {
       location: "south_india",
       caste: "brahmin",
@@ -59,7 +59,7 @@ const TEST_GIRLS = [
   },
   {
     displayName: "Nisha Patel",
-    avatarUrl: "https://randomuser.me/api/portraits/women/48.jpg",
+    avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face&q=80",
     profile: {
       location: "west_india",
       caste: "vaishya",
@@ -87,7 +87,7 @@ const TEST_GIRLS = [
   },
   {
     displayName: "Kavya Reddy",
-    avatarUrl: "https://randomuser.me/api/portraits/women/50.jpg",
+    avatarUrl: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face&q=80",
     profile: {
       location: "south_india",
       caste: "other_hindu",
@@ -115,7 +115,7 @@ const TEST_GIRLS = [
   },
   {
     displayName: "Meera Singh",
-    avatarUrl: "https://randomuser.me/api/portraits/women/52.jpg",
+    avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face&q=80",
     profile: {
       location: "north_india",
       caste: "kshatriya",
@@ -143,7 +143,7 @@ const TEST_GIRLS = [
   },
   {
     displayName: "Zara Khan",
-    avatarUrl: "https://randomuser.me/api/portraits/women/54.jpg",
+    avatarUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=400&fit=crop&crop=face&q=80",
     profile: {
       location: "north_india",
       caste: "muslim",
@@ -171,7 +171,7 @@ const TEST_GIRLS = [
   },
   {
     displayName: "Simran Kaur",
-    avatarUrl: "https://randomuser.me/api/portraits/women/56.jpg",
+    avatarUrl: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=400&fit=crop&crop=face&q=80",
     profile: {
       location: "north_india",
       caste: "sikh",
@@ -199,7 +199,7 @@ const TEST_GIRLS = [
   },
   {
     displayName: "Riya Joshi",
-    avatarUrl: "https://randomuser.me/api/portraits/women/58.jpg",
+    avatarUrl: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400&h=400&fit=crop&crop=face&q=80",
     profile: {
       location: "west_india",
       caste: "brahmin",
@@ -227,7 +227,7 @@ const TEST_GIRLS = [
   },
   {
     displayName: "Pooja Nair",
-    avatarUrl: "https://randomuser.me/api/portraits/women/60.jpg",
+    avatarUrl: "https://images.unsplash.com/photo-1502323703975-b53c8a464aeb?w=400&h=400&fit=crop&crop=face&q=80",
     profile: {
       location: "south_india",
       caste: "other_hindu",
@@ -255,7 +255,7 @@ const TEST_GIRLS = [
   },
   {
     displayName: "Divya Menon",
-    avatarUrl: "https://randomuser.me/api/portraits/women/62.jpg",
+    avatarUrl: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&h=400&fit=crop&crop=face&q=80",
     profile: {
       location: "abroad",
       caste: "other_hindu",
