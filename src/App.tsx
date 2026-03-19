@@ -13,6 +13,7 @@ import MatchesPage from "./pages/MatchesPage";
 import ChatPage from "./pages/ChatPage";
 import AppShell from "./components/layout/AppShell";
 import AdminPage from "./pages/AdminPage";
+import MembershipPage from "./pages/MembershipPage";
 
 const ADMIN_EMAIL = "ikunalrai@gmail.com";
 
@@ -77,6 +78,7 @@ export default function App() {
           <Route path="/matches" element={<MatchesPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/match/:userId" element={<MatchDetailPage />} />
+          <Route path="/membership" element={<MembershipPage />} />
         </Route>
 
         <Route path="/chat/:conversationId" element={

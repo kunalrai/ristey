@@ -111,3 +111,39 @@ export const updateAvatar = mutation({
     await ctx.db.patch(user._id, { avatarUrl: url });
   },
 });
+
+export const getMembership = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+      .unique();
+    if (!user) return null;
+    const tier = user.membershipTier ?? "free";
+    const expiresAt = user.membershipExpiresAt ?? null;
+    const isActive = expiresAt ? expiresAt > Date.now() : tier === "free";
+    return { tier: isActive ? tier : "free", expiresAt };
+  },
+});
+
+export const upgradeMembership = mutation({
+  args: { tier: v.string() },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+      .unique();
+    if (!user) throw new Error("User not found");
+    const validTiers = ["free", "curator", "heritage", "concierge"];
+    if (!validTiers.includes(args.tier)) throw new Error("Invalid tier");
+    // Mock: set expiry 30 days from now (in production this would be handled by payment webhook)
+    const expiresAt = args.tier === "free" ? undefined : Date.now() + 30 * 24 * 60 * 60 * 1000;
+    await ctx.db.patch(user._id, { membershipTier: args.tier, membershipExpiresAt: expiresAt });
+    return { tier: args.tier, expiresAt };
+  },
+});

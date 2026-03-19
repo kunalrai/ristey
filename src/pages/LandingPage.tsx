@@ -12,6 +12,7 @@ const NAVY      = "#1C2B3A";
 const STONE     = "#F5F0E6";
 const STONE_100 = "#EDE8DC";
 const STONE_200 = "#D9D0BE";
+const CARD_BG   = "#EDE8DC";
 const TEXT      = "#1a140e";
 const MUTED     = "#7a6e60";
 const SERIF     = "'Noto Serif', Georgia, serif";
@@ -29,11 +30,12 @@ function useIsMobile(bp = 768) {
 }
 
 // ── Reusable components ───────────────────────────────────────────────────────
-function NavLink({ children }: { children: React.ReactNode }) {
+function NavLink({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) {
   const [hovered, setHovered] = useState(false);
   return (
     <a
       href="#"
+      onClick={e => { e.preventDefault(); onClick?.(); }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
@@ -122,6 +124,7 @@ export default function LandingPage() {
   const createOrUpdateUser             = useMutation(api.users.createOrUpdateUser);
   const navigate                       = useNavigate();
   const signInRef                      = useRef<HTMLDivElement>(null);
+  const membershipRef                  = useRef<HTMLDivElement>(null);
   const [navScrolled, setNavScrolled]  = useState(false);
   const [menuOpen, setMenuOpen]        = useState(false);
   const isMobile                       = useIsMobile();
@@ -157,6 +160,11 @@ export default function LandingPage() {
     signInRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
+  const scrollToMembership = () => {
+    setMenuOpen(false);
+    membershipRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   if (isLoading || isAuthenticated) {
     return (
       <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: STONE, fontFamily: SERIF, color: MUTED }}>
@@ -185,7 +193,8 @@ export default function LandingPage() {
           {/* Desktop links */}
           {!isMobile && (
             <div style={{ display: "flex", gap: 32, alignItems: "center" }}>
-              {["Discover", "Our Philosophy", "Curators", "Membership"].map(l => <NavLink key={l}>{l}</NavLink>)}
+              {["Discover", "Our Philosophy", "Curators"].map(l => <NavLink key={l}>{l}</NavLink>)}
+              <NavLink onClick={scrollToMembership}>Membership</NavLink>
             </div>
           )}
 
@@ -202,9 +211,10 @@ export default function LandingPage() {
         {/* Mobile slide-down menu */}
         {isMobile && menuOpen && (
           <div style={{ background: STONE, borderTop: `1px solid ${STONE_200}`, padding: "20px 24px 28px", display: "flex", flexDirection: "column", gap: 20 }}>
-            {["Discover", "Our Philosophy", "Curators", "Membership"].map(l => (
+            {["Discover", "Our Philosophy", "Curators"].map(l => (
               <a key={l} href="#" onClick={() => setMenuOpen(false)} style={{ fontFamily: SANS, fontSize: 15, fontWeight: 500, color: TEXT, textDecoration: "none" }}>{l}</a>
             ))}
+            <a href="#" onClick={e => { e.preventDefault(); scrollToMembership(); }} style={{ fontFamily: SANS, fontSize: 15, fontWeight: 500, color: TEXT, textDecoration: "none" }}>Membership</a>
             <PrimaryBtn full onClick={scrollToSignIn}>Begin Journey</PrimaryBtn>
           </div>
         )}
@@ -354,6 +364,150 @@ export default function LandingPage() {
           <div style={{ width: 40, height: 2, background: GOLD, margin: "0 auto 28px" }} />
           <p style={{ fontFamily: SERIF, fontSize: isMobile ? 14 : 16, color: "rgba(255,255,255,0.55)", lineHeight: 1.9, maxWidth: 440, margin: "0 auto" }}>
             From private cultural viewings to candlelit heritage dinners — every connection we curate reflects a life lived with intention and grace.
+          </p>
+        </div>
+      </section>
+
+      {/* ══ E2. MEMBERSHIP PRICING ══════════════════════════════════════════ */}
+      <section ref={membershipRef} style={{ background: STONE_100, padding: isMobile ? "72px 24px" : "100px 40px" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          {/* Header */}
+          <div style={{ textAlign: "center", marginBottom: isMobile ? 40 : 60 }}>
+            <div style={{ fontFamily: SANS, fontSize: 10, fontWeight: 600, color: GOLD_DARK, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 14 }}>
+              Membership
+            </div>
+            <h2 style={{ fontFamily: SERIF, fontSize: isMobile ? 28 : "clamp(28px, 4vw, 48px)", fontWeight: 800, color: TEXT, letterSpacing: "-0.02em", marginBottom: 16 }}>
+              Invest in Your<br /><em style={{ fontStyle: "italic", color: CRIMSON }}>Legacy</em>
+            </h2>
+            <p style={{ fontFamily: SERIF, fontSize: 15, color: MUTED, lineHeight: 1.8, maxWidth: 480, margin: "0 auto" }}>
+              South Asian families spend lakhs on weddings. We help you find the right person first.
+              Every tier reflects a commitment to the most important decision of your life.
+            </p>
+          </div>
+
+          {/* Tier cards */}
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: isMobile ? "1fr" : "repeat(4, 1fr)",
+            gap: isMobile ? 16 : 20,
+            alignItems: "start",
+          }}>
+            {/* Free */}
+            {[
+              {
+                tier: "free", name: "Free", price: "₹0", period: "forever",
+                highlight: false, badge: null,
+                features: [
+                  "Browse blurred match profiles",
+                  "Complete your heritage profile",
+                  "Basic compatibility scores",
+                  "Cultural values assessment",
+                ],
+              },
+              {
+                tier: "curator", name: "Curator", price: "₹999", period: "per month",
+                highlight: true, badge: "Most Popular",
+                features: [
+                  "Full profile visibility",
+                  "Unlimited messaging",
+                  "Verified member badge",
+                  "Complete compatibility reports",
+                  "All match details unlocked",
+                ],
+              },
+              {
+                tier: "heritage", name: "Heritage", price: "₹2,499", period: "per month",
+                highlight: false, badge: null,
+                features: [
+                  "Everything in Curator",
+                  "Priority ranking in matches",
+                  "Detailed breakdown reports",
+                  "Family co-login access",
+                  "Heritage profile certification",
+                ],
+              },
+              {
+                tier: "concierge", name: "Concierge", price: "₹9,999", period: "per month",
+                highlight: false, badge: "White Glove",
+                features: [
+                  "Everything in Heritage",
+                  "Personal human curator",
+                  "5 handpicked introductions/month",
+                  "Private curator consultations",
+                  "Dedicated relationship adviser",
+                ],
+              },
+            ].map(({ tier, name, price, period, highlight, badge, features }) => (
+              <div
+                key={tier}
+                style={{
+                  background: highlight ? "#fff" : CARD_BG,
+                  border: highlight ? `2px solid ${CRIMSON}` : `1px solid ${STONE_200}`,
+                  borderRadius: 16,
+                  padding: isMobile ? "28px 24px" : "32px 24px",
+                  position: "relative",
+                  transform: highlight && !isMobile ? "translateY(-12px)" : undefined,
+                  boxShadow: highlight ? "0 12px 40px rgba(128,0,32,0.12)" : "none",
+                }}
+              >
+                {badge && (
+                  <div style={{
+                    position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)",
+                    background: highlight ? CRIMSON : NAVY,
+                    color: "#fff", fontSize: 9, fontWeight: 800,
+                    letterSpacing: "0.12em", textTransform: "uppercase",
+                    padding: "4px 12px", borderRadius: 999,
+                    fontFamily: SANS, whiteSpace: "nowrap",
+                  }}>
+                    {badge}
+                  </div>
+                )}
+
+                <div style={{ fontFamily: SANS, fontSize: 10, fontWeight: 700, color: highlight ? CRIMSON : GOLD_DARK, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>
+                  {name}
+                </div>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 4 }}>
+                  <span style={{ fontFamily: SERIF, fontSize: 36, fontWeight: 800, color: TEXT }}>{price}</span>
+                </div>
+                <div style={{ fontFamily: SANS, fontSize: 11, color: MUTED, marginBottom: 24, letterSpacing: "0.04em" }}>
+                  {period}
+                </div>
+
+                <div style={{ width: 32, height: 2, background: highlight ? CRIMSON : GOLD, marginBottom: 20 }} />
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 28 }}>
+                  {features.map(f => (
+                    <div key={f} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                      <span style={{ color: GOLD, fontSize: 11, marginTop: 2, flexShrink: 0 }}>✦</span>
+                      <span style={{ fontFamily: SANS, fontSize: 13, color: "#1a140e", lineHeight: 1.5 }}>{f}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={scrollToSignIn}
+                  style={{
+                    width: "100%", padding: "12px 0",
+                    background: highlight ? CRIMSON : "transparent",
+                    border: highlight ? "none" : `1.5px solid ${CRIMSON}`,
+                    borderRadius: 8,
+                    fontFamily: SANS, fontSize: 13, fontWeight: 700,
+                    color: highlight ? "#fff" : CRIMSON,
+                    cursor: "pointer", letterSpacing: "0.04em",
+                    transition: "opacity 0.2s",
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.opacity = "0.8")}
+                  onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
+                >
+                  {tier === "free" ? "Begin Free" : "Get Started"}
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Footnote */}
+          <p style={{ textAlign: "center", fontFamily: SANS, fontSize: 11, color: MUTED, marginTop: 32, letterSpacing: "0.04em" }}>
+            All paid memberships include a 7-day grace period · Cancel anytime · Prices in Indian Rupees
           </p>
         </div>
       </section>

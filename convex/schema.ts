@@ -8,6 +8,8 @@ export default defineSchema({
     displayName: v.string(),
     avatarUrl: v.optional(v.string()),
     gender: v.optional(v.string()), // "male" | "female" | "other"
+    membershipTier: v.optional(v.string()),   // "free" | "curator" | "heritage" | "concierge"
+    membershipExpiresAt: v.optional(v.number()),
     onboardingComplete: v.boolean(),
     preferencesComplete: v.boolean(),
     createdAt: v.number(),
