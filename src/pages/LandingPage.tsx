@@ -60,7 +60,7 @@ export default function LandingPage() {
         alignItems: "center",
         justifyContent: "center",
         padding: "var(--space-xl)",
-        background: "linear-gradient(160deg, #1a0a0f 0%, var(--color-bg) 60%)",
+        background: "linear-gradient(160deg, #c8b0c8 0%, var(--color-bg) 60%)",
       }}
     >
       <div
@@ -96,17 +96,17 @@ export default function LandingPage() {
           <SignIn
             appearance={{
               variables: {
-                colorPrimary: "#e03e6b",
-                colorBackground: "#1a1a1a",
-                colorText: "#f5f5f5",
-                colorInputBackground: "#242424",
-                colorInputText: "#f5f5f5",
+                colorPrimary: "#800020",
+                colorBackground: "#f0eaf0",
+                colorText: "#1a1020",
+                colorInputBackground: "#f7f2f7",
+                colorInputText: "#1a1020",
                 borderRadius: "12px",
               },
               elements: {
                 card: {
-                  border: "1px solid #2e2e2e",
-                  boxShadow: "0 8px 24px rgba(0,0,0,0.6)",
+                  border: "1px solid #d0c4d0",
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
                 },
               },
             }}

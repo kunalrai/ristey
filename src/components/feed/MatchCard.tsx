@@ -175,11 +175,11 @@ export default function MatchCard({
                   alignItems: "center",
                   gap: 4,
                   padding: "4px 10px",
-                  background: "rgba(224, 62, 107, 0.1)",
+                  background: "rgba(128, 0, 32, 0.08)",
                   borderRadius: "var(--radius-full)",
                   fontSize: "var(--font-sm)",
-                  color: "var(--color-primary-light)",
-                  border: "1px solid rgba(224, 62, 107, 0.2)",
+                  color: "var(--color-primary)",
+                  border: "1px solid rgba(128, 0, 32, 0.2)",
                 }}
               >
                 {PROFILE_ICONS[key] ?? "✓"} {key.charAt(0).toUpperCase() + key.slice(1)}

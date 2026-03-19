@@ -1,16 +1,18 @@
 :root {
-  --color-primary: #e03e6b;
-  --color-primary-dark: #b8305a;
-  --color-primary-light: #ff6b9d;
-  --color-bg: #0f0f0f;
-  --color-bg-card: #1a1a1a;
-  --color-bg-elevated: #242424;
-  --color-border: #2e2e2e;
-  --color-text: #f5f5f5;
-  --color-text-muted: #888888;
-  --color-text-subtle: #555555;
+  --color-primary: #800020;
+  --color-primary-dark: #5a0016;
+  --color-primary-light: #a3003a;
+  --color-secondary: #D4AF37;
+  --color-secondary-dark: #C5A059;
+  --color-bg: #e8e0e8;
+  --color-bg-card: #f0eaf0;
+  --color-bg-elevated: #f7f2f7;
+  --color-border: #d0c4d0;
+  --color-text: #1a1020;
+  --color-text-muted: #6b5b6b;
+  --color-text-subtle: #9e8e9e;
   --color-success: #4caf73;
-  --color-warning: #f5a623;
+  --color-warning: #D4AF37;
 
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -32,9 +34,9 @@
   --font-xl: 24px;
   --font-2xl: 32px;
 
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
 
   --nav-height: 64px;
   --header-height: 56px;
@@ -54,7 +56,7 @@ html, body, #root {
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: "Georgia", "Times New Roman", serif;
   font-size: var(--font-base);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -89,7 +91,7 @@ input, textarea, select {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
+  background: var(--color-text-subtle);
   border-radius: var(--radius-full);
 }
 

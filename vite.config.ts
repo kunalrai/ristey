@@ -15,8 +15,8 @@ export default defineConfig({
         description: "Find your perfect match.",
         start_url: "/",
         display: "standalone",
-        background_color: "#0f0f0f",
-        theme_color: "#e03e6b",
+        background_color: "#e8e0e8",
+        theme_color: "#800020",
         orientation: "portrait-primary",
         icons: [
           { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
