@@ -82,6 +82,8 @@ export default function AdminPage() {
   const settings = useQuery(api.admin.getSettings);
   const deleteUser = useMutation(api.admin.deleteUser);
   const updateQuestion = useMutation(api.questions.updateQuestion);
+  const addQuestion = useMutation(api.questions.addQuestion);
+  const deleteQuestion = useMutation(api.questions.deleteQuestion);
   const updateSetting = useMutation(api.admin.updateSetting);
 
   const [view, setView] = useState<"dashboard" | "users" | "questions" | "settings">("dashboard");
@@ -99,6 +101,18 @@ export default function AdminPage() {
   const [editingQ, setEditingQ] = useState<string | null>(null);
   const [qDraft, setQDraft] = useState<{ text: string; defaultWeight: number }>({ text: "", defaultWeight: 5 });
   const [savingQ, setSavingQ] = useState(false);
+  const [addingQ, setAddingQ] = useState(false);
+  const [newQ, setNewQ] = useState<{
+    key: string; category: string; text: string;
+    type: "single_select" | "multi_select";
+    scoringStrategy: "exact_match" | "overlap";
+    defaultWeight: number;
+    options: { value: string; label: string }[];
+  }>({ key: "", category: "basics", text: "", type: "single_select", scoringStrategy: "exact_match", defaultWeight: 5, options: [{ value: "", label: "" }] });
+  const [savingNewQ, setSavingNewQ] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
+  const [confirmDeleteQ, setConfirmDeleteQ] = useState<string | null>(null);
+  const [deletingQ, setDeletingQ] = useState(false);
 
   // Settings view state
   const [apiKeyDraft, setApiKeyDraft] = useState("");
@@ -555,7 +569,7 @@ export default function AdminPage() {
         ) : view === "questions" ? (
           <>
             {/* Questions view */}
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
               <button onClick={() => setView("dashboard")} style={{ color: CRIMSON, fontSize: 20 }}>←</button>
               <h1 style={{ fontSize: 26, fontWeight: 800, color: "#1a140e" }}>Questions</h1>
               <span style={{ marginLeft: "auto", fontSize: 13, color: "#7a6e60" }}>
@@ -563,53 +577,239 @@ export default function AdminPage() {
               </span>
             </div>
 
+            {/* Add Question Toggle */}
+            <button
+              onClick={() => { setAddingQ(!addingQ); setAddError(null); }}
+              style={{
+                width: "100%", padding: "13px 18px",
+                background: addingQ ? CARD_BG : CRIMSON,
+                color: addingQ ? CRIMSON : "#fff",
+                borderRadius: 12, fontSize: 12, fontWeight: 800,
+                letterSpacing: "0.08em", textTransform: "uppercase",
+                marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                border: addingQ ? `2px solid ${CRIMSON}` : "none",
+              }}
+            >
+              {addingQ ? "✕  Cancel" : "+ Add Question"}
+            </button>
+
+            {/* Add Question Form */}
+            {addingQ && (
+              <div style={{ background: CARD_BG, borderRadius: 12, padding: "18px", marginBottom: 14 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: GOLD, marginBottom: 14 }}>
+                  New Question
+                </div>
+
+                <label style={{ fontSize: 11, color: "#7a6e60", fontWeight: 600, display: "block", marginBottom: 4 }}>Question Text</label>
+                <textarea
+                  value={newQ.text}
+                  onChange={e => {
+                    const text = e.target.value;
+                    const key = text.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+                    setNewQ(d => ({ ...d, text, key }));
+                  }}
+                  rows={2}
+                  placeholder="e.g. What are your hobbies?"
+                  style={{
+                    width: "100%", padding: "10px 12px", background: "#f5f0e6",
+                    border: "1.5px solid rgba(0,0,0,0.12)", borderRadius: 8,
+                    fontSize: 14, fontFamily: "Georgia, serif", color: "#1a140e",
+                    outline: "none", resize: "vertical", boxSizing: "border-box", marginBottom: 12,
+                  }}
+                />
+
+                <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ fontSize: 11, color: "#7a6e60", fontWeight: 600, display: "block", marginBottom: 4 }}>Category</label>
+                    <input
+                      value={newQ.category}
+                      onChange={e => setNewQ(d => ({ ...d, category: e.target.value }))}
+                      placeholder="basics, lifestyle, values…"
+                      style={{
+                        width: "100%", padding: "9px 12px", background: "#f5f0e6",
+                        border: "1.5px solid rgba(0,0,0,0.12)", borderRadius: 8,
+                        fontSize: 13, color: "#1a140e", outline: "none", boxSizing: "border-box",
+                      }}
+                    />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ fontSize: 11, color: "#7a6e60", fontWeight: 600, display: "block", marginBottom: 4 }}>Type</label>
+                    <select
+                      value={newQ.type}
+                      onChange={e => {
+                        const type = e.target.value as "single_select" | "multi_select";
+                        setNewQ(d => ({ ...d, type, scoringStrategy: type === "multi_select" ? "overlap" : "exact_match" }));
+                      }}
+                      style={{
+                        width: "100%", padding: "9px 12px", background: "#f5f0e6",
+                        border: "1.5px solid rgba(0,0,0,0.12)", borderRadius: 8,
+                        fontSize: 13, color: "#1a140e", outline: "none",
+                      }}
+                    >
+                      <option value="single_select">Single Select</option>
+                      <option value="multi_select">Multi Select</option>
+                    </select>
+                  </div>
+                </div>
+
+                <label style={{ fontSize: 11, color: "#7a6e60", fontWeight: 600, display: "block", marginBottom: 4 }}>
+                  Default Weight: {newQ.defaultWeight}/10
+                </label>
+                <input
+                  type="range" min={1} max={10}
+                  value={newQ.defaultWeight}
+                  onChange={e => setNewQ(d => ({ ...d, defaultWeight: Number(e.target.value) }))}
+                  style={{ width: "100%", accentColor: CRIMSON, marginBottom: 14 }}
+                />
+
+                <label style={{ fontSize: 11, color: "#7a6e60", fontWeight: 600, display: "block", marginBottom: 8 }}>Options</label>
+                {newQ.options.map((opt, i) => (
+                  <div key={i} style={{ display: "flex", gap: 6, marginBottom: 6 }}>
+                    <input
+                      value={opt.label}
+                      onChange={e => {
+                        const label = e.target.value;
+                        const value = label.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+                        setNewQ(d => ({ ...d, options: d.options.map((o, j) => j === i ? { value, label } : o) }));
+                      }}
+                      placeholder={`Option ${i + 1}`}
+                      style={{
+                        flex: 1, padding: "8px 10px", background: "#f5f0e6",
+                        border: "1px solid rgba(0,0,0,0.1)", borderRadius: 7,
+                        fontSize: 13, color: "#1a140e", outline: "none",
+                      }}
+                    />
+                    {newQ.options.length > 1 && (
+                      <button
+                        onClick={() => setNewQ(d => ({ ...d, options: d.options.filter((_, j) => j !== i) }))}
+                        style={{ padding: "0 10px", color: "#b0a090", fontSize: 18, lineHeight: 1 }}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  onClick={() => setNewQ(d => ({ ...d, options: [...d.options, { value: "", label: "" }] }))}
+                  style={{ fontSize: 12, color: CRIMSON, fontWeight: 700, marginBottom: 14 }}
+                >
+                  + Add Option
+                </button>
+
+                {addError && (
+                  <div style={{ fontSize: 12, color: "#c0392b", marginBottom: 10 }}>{addError}</div>
+                )}
+
+                <button
+                  disabled={savingNewQ || !newQ.text.trim() || newQ.options.some(o => !o.label.trim())}
+                  onClick={async () => {
+                    setSavingNewQ(true);
+                    setAddError(null);
+                    try {
+                      const maxOrder = Math.max(0, ...(questions ?? []).map(q => q.order));
+                      await addQuestion({
+                        key: newQ.key || newQ.text.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, ""),
+                        category: newQ.category.trim() || "general",
+                        text: newQ.text.trim(),
+                        type: newQ.type,
+                        options: newQ.options.filter(o => o.label.trim()).map(o => ({
+                          value: o.value || o.label.toLowerCase().replace(/[^a-z0-9]+/g, "_"),
+                          label: o.label.trim(),
+                        })),
+                        defaultWeight: newQ.defaultWeight,
+                        scoringStrategy: newQ.scoringStrategy,
+                        order: maxOrder + 1,
+                      });
+                      setAddingQ(false);
+                      setNewQ({ key: "", category: "basics", text: "", type: "single_select", scoringStrategy: "exact_match", defaultWeight: 5, options: [{ value: "", label: "" }] });
+                    } catch (err: unknown) {
+                      setAddError(err instanceof Error ? err.message : "Failed to add question");
+                    } finally {
+                      setSavingNewQ(false);
+                    }
+                  }}
+                  style={{
+                    width: "100%", padding: "12px", background: CRIMSON, color: "#fff",
+                    borderRadius: 10, fontSize: 14, fontWeight: 700,
+                    opacity: savingNewQ || !newQ.text.trim() || newQ.options.some(o => !o.label.trim()) ? 0.5 : 1,
+                  }}
+                >
+                  {savingNewQ ? "Adding…" : "Add Question"}
+                </button>
+              </div>
+            )}
+
             {!questions ? (
               <div style={{ color: "#7a6e60" }}>Loading…</div>
             ) : (
               questions.map((q) => {
                 const isEditing = editingQ === q._id;
+                const isDeletingThis = confirmDeleteQ === q._id;
                 return (
                   <div
                     key={q._id}
-                    style={{
-                      background: CARD_BG,
-                      borderRadius: 12,
-                      padding: "16px 18px",
-                      marginBottom: 10,
-                    }}
+                    style={{ background: CARD_BG, borderRadius: 12, padding: "16px 18px", marginBottom: 10 }}
                   >
                     {/* Header row */}
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
                       <div>
-                        <span style={{
-                          fontSize: 9, fontWeight: 700, letterSpacing: "0.1em",
-                          textTransform: "uppercase", color: GOLD,
-                        }}>
+                        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: GOLD }}>
                           {q.category} · {q.type.replace("_", " ")}
                         </span>
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <span style={{
-                          fontSize: 11, fontWeight: 700, color: CRIMSON,
-                          background: "rgba(128,0,32,0.08)", padding: "2px 8px", borderRadius: 999,
-                        }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: CRIMSON, background: "rgba(128,0,32,0.08)", padding: "2px 8px", borderRadius: 999 }}>
                           Weight {isEditing ? qDraft.defaultWeight : q.defaultWeight}/10
                         </span>
-                        {!isEditing && (
-                          <button
-                            onClick={() => {
-                              setEditingQ(q._id);
-                              setQDraft({ text: q.text, defaultWeight: q.defaultWeight });
-                            }}
-                            style={{ fontSize: 13, color: "#7a6e60", padding: "2px 6px" }}
-                          >
-                            ✎
-                          </button>
+                        {!isEditing && !isDeletingThis && (
+                          <>
+                            <button
+                              onClick={() => { setEditingQ(q._id); setQDraft({ text: q.text, defaultWeight: q.defaultWeight }); }}
+                              style={{ fontSize: 13, color: "#7a6e60", padding: "2px 6px" }}
+                            >
+                              ✎
+                            </button>
+                            <button
+                              onClick={() => setConfirmDeleteQ(q._id)}
+                              style={{ fontSize: 15, color: "#b0a090", padding: "2px 6px" }}
+                            >
+                              🗑
+                            </button>
+                          </>
                         )}
                       </div>
                     </div>
 
-                    {isEditing ? (
+                    {isDeletingThis ? (
+                      <div>
+                        <p style={{ fontSize: 13, color: "#7a6e60", marginBottom: 10 }}>
+                          Delete this question permanently?
+                        </p>
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <button
+                            disabled={deletingQ}
+                            onClick={async () => {
+                              setDeletingQ(true);
+                              try {
+                                await deleteQuestion({ id: q._id });
+                                setConfirmDeleteQ(null);
+                              } finally {
+                                setDeletingQ(false);
+                              }
+                            }}
+                            style={{ padding: "8px 18px", background: "#c0392b", color: "#fff", borderRadius: 8, fontSize: 13, fontWeight: 700 }}
+                          >
+                            {deletingQ ? "…" : "Delete"}
+                          </button>
+                          <button
+                            onClick={() => setConfirmDeleteQ(null)}
+                            style={{ padding: "8px 14px", fontSize: 13, color: "#7a6e60" }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : isEditing ? (
                       <div>
                         <textarea
                           value={qDraft.text}
@@ -619,23 +819,18 @@ export default function AdminPage() {
                             width: "100%", padding: "10px 12px",
                             background: "#f5f0e6", border: `1.5px solid ${CRIMSON}`,
                             borderRadius: 8, fontSize: 14, fontFamily: "Georgia, serif",
-                            color: "#1a140e", outline: "none", resize: "vertical",
-                            boxSizing: "border-box",
+                            color: "#1a140e", outline: "none", resize: "vertical", boxSizing: "border-box",
                           }}
                         />
                         <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
-                          <label style={{ fontSize: 12, color: "#7a6e60", whiteSpace: "nowrap" }}>
-                            Default Weight
-                          </label>
+                          <label style={{ fontSize: 12, color: "#7a6e60", whiteSpace: "nowrap" }}>Default Weight</label>
                           <input
                             type="range" min={1} max={10}
                             value={qDraft.defaultWeight}
                             onChange={(e) => setQDraft((d) => ({ ...d, defaultWeight: Number(e.target.value) }))}
                             style={{ flex: 1, accentColor: CRIMSON }}
                           />
-                          <span style={{ fontSize: 14, fontWeight: 700, color: CRIMSON, minWidth: 20 }}>
-                            {qDraft.defaultWeight}
-                          </span>
+                          <span style={{ fontSize: 14, fontWeight: 700, color: CRIMSON, minWidth: 20 }}>{qDraft.defaultWeight}</span>
                         </div>
                         <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
                           <button
@@ -643,43 +838,27 @@ export default function AdminPage() {
                             onClick={async () => {
                               setSavingQ(true);
                               try {
-                                await updateQuestion({
-                                  id: q._id,
-                                  text: qDraft.text.trim(),
-                                  defaultWeight: qDraft.defaultWeight,
-                                });
+                                await updateQuestion({ id: q._id, text: qDraft.text.trim(), defaultWeight: qDraft.defaultWeight });
                                 setEditingQ(null);
                               } finally {
                                 setSavingQ(false);
                               }
                             }}
-                            style={{
-                              padding: "8px 18px", background: CRIMSON, color: "#fff",
-                              borderRadius: 8, fontSize: 13, fontWeight: 700,
-                            }}
+                            style={{ padding: "8px 18px", background: CRIMSON, color: "#fff", borderRadius: 8, fontSize: 13, fontWeight: 700 }}
                           >
                             {savingQ ? "Saving…" : "Save"}
                           </button>
-                          <button
-                            onClick={() => setEditingQ(null)}
-                            style={{ padding: "8px 14px", fontSize: 13, color: "#7a6e60" }}
-                          >
+                          <button onClick={() => setEditingQ(null)} style={{ padding: "8px 14px", fontSize: 13, color: "#7a6e60" }}>
                             Cancel
                           </button>
                         </div>
                       </div>
                     ) : (
                       <div>
-                        <p style={{ fontSize: 14, color: "#1a140e", lineHeight: 1.5, marginBottom: 8 }}>
-                          {q.text}
-                        </p>
+                        <p style={{ fontSize: 14, color: "#1a140e", lineHeight: 1.5, marginBottom: 8 }}>{q.text}</p>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                           {q.options?.map((opt) => (
-                            <span key={opt.value} style={{
-                              fontSize: 11, padding: "2px 8px",
-                              background: "rgba(0,0,0,0.05)", borderRadius: 999,
-                              color: "#7a6e60",
-                            }}>
+                            <span key={opt.value} style={{ fontSize: 11, padding: "2px 8px", background: "rgba(0,0,0,0.05)", borderRadius: 999, color: "#7a6e60" }}>
                               {opt.label}
                             </span>
                           ))}

@@ -1,4 +1,4 @@
-import { mutation, query } from "./_generated/server";
+import { mutation, query, MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 
 const QUESTION_BANK = [
@@ -19,27 +19,6 @@ const QUESTION_BANK = [
     defaultWeight: 7,
     scoringStrategy: "exact_match" as const,
     order: 1,
-  },
-  {
-    key: "caste",
-    category: "identity",
-    text: "What is your caste / community?",
-    type: "single_select" as const,
-    options: [
-      { value: "brahmin", label: "Brahmin" },
-      { value: "kshatriya", label: "Kshatriya" },
-      { value: "vaishya", label: "Vaishya" },
-      { value: "other_hindu", label: "Other Hindu" },
-      { value: "muslim", label: "Muslim" },
-      { value: "christian", label: "Christian" },
-      { value: "sikh", label: "Sikh" },
-      { value: "jain", label: "Jain" },
-      { value: "buddhist", label: "Buddhist" },
-      { value: "prefer_not_to_say", label: "Prefer not to say" },
-    ],
-    defaultWeight: 6,
-    scoringStrategy: "exact_match" as const,
-    order: 2,
   },
   {
     key: "diet",
@@ -196,6 +175,18 @@ export const getAllQuestions = query({
   },
 });
 
+const ADMIN_EMAIL = "ikunalrai@gmail.com";
+
+async function requireAdminQ(ctx: MutationCtx) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) throw new Error("Unauthorized");
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+    .unique();
+  if (!user || user.email !== ADMIN_EMAIL) throw new Error("Forbidden");
+}
+
 export const updateQuestion = mutation({
   args: {
     id: v.id("questions"),
@@ -203,16 +194,43 @@ export const updateQuestion = mutation({
     defaultWeight: v.number(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
-      .unique();
-    if (!user || user.email !== "ikunalrai@gmail.com") throw new Error("Forbidden");
+    await requireAdminQ(ctx);
     await ctx.db.patch(args.id, {
       text: args.text,
       defaultWeight: Math.min(10, Math.max(1, args.defaultWeight)),
     });
+  },
+});
+
+export const addQuestion = mutation({
+  args: {
+    key: v.string(),
+    category: v.string(),
+    text: v.string(),
+    type: v.union(v.literal("single_select"), v.literal("multi_select")),
+    options: v.array(v.object({ value: v.string(), label: v.string() })),
+    defaultWeight: v.number(),
+    scoringStrategy: v.union(v.literal("exact_match"), v.literal("overlap")),
+    order: v.number(),
+  },
+  handler: async (ctx, args) => {
+    await requireAdminQ(ctx);
+    const existing = await ctx.db
+      .query("questions")
+      .withIndex("by_key", (q) => q.eq("key", args.key))
+      .unique();
+    if (existing) throw new Error(`Key "${args.key}" already exists`);
+    await ctx.db.insert("questions", {
+      ...args,
+      defaultWeight: Math.min(10, Math.max(1, args.defaultWeight)),
+    });
+  },
+});
+
+export const deleteQuestion = mutation({
+  args: { id: v.id("questions") },
+  handler: async (ctx, args) => {
+    await requireAdminQ(ctx);
+    await ctx.db.delete(args.id);
   },
 });
