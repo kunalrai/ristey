@@ -2,6 +2,8 @@
 
 > Curated matchmaking rooted in cultural heritage and family values.
 
+**Live:** [ristey.site](https://ristey.site)
+
 Ristey is a Progressive Web App (PWA) for South Asian matchmaking. It uses a weighted compatibility scoring algorithm to connect users based on their values, lifestyle, and preferences — built with a modern serverless stack and an elegant heritage aesthetic.
 
 ---
