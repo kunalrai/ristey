@@ -283,6 +283,138 @@ const TEST_GIRLS = [
   },
 ];
 
+const TEST_MEN = [
+  {
+    displayName: "Periyar",
+    avatarUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Periyar_EVR.jpg/400px-Periyar_EVR.jpg",
+    profile: {
+      location: "south_india",
+      caste: "other_hindu",
+      diet: "non_veg",
+      kids: "open",
+      career: "very_important",
+      music: JSON.stringify(["classical"]),
+      movies: JSON.stringify(["documentary"]),
+      politics: "progressive",
+      religion: "not_religious",
+      ethnicity: "south_asian",
+    },
+    prefs: {
+      location: { value: "south_india", weight: 6 },
+      caste: { value: "other_hindu", weight: 2 },
+      diet: { value: "non_veg", weight: 3 },
+      kids: { value: "open", weight: 5 },
+      career: { value: "very_important", weight: 9 },
+      music: { value: JSON.stringify(["classical"]), weight: 3 },
+      movies: { value: JSON.stringify(["documentary"]), weight: 4 },
+      politics: { value: "progressive", weight: 10 },
+      religion: { value: "not_religious", weight: 9 },
+      ethnicity: { value: "south_asian", weight: 4 },
+    },
+  },
+];
+
+export const seedTestMen = mutation({
+  args: {},
+  handler: async (ctx, _args) => {
+    const now = Date.now();
+    const created: string[] = [];
+
+    for (let i = 0; i < TEST_MEN.length; i++) {
+      const man = TEST_MEN[i];
+      const tokenIdentifier = `seed_test_man_${i + 1}`;
+
+      const existing = await ctx.db
+        .query("users")
+        .withIndex("by_token", (q) => q.eq("tokenIdentifier", tokenIdentifier))
+        .unique();
+      if (existing) {
+        created.push(`${man.displayName} (already exists)`);
+        continue;
+      }
+
+      const userId = await ctx.db.insert("users", {
+        tokenIdentifier,
+        displayName: man.displayName,
+        avatarUrl: man.avatarUrl,
+        gender: "male",
+        onboardingComplete: true,
+        preferencesComplete: true,
+        createdAt: now,
+        lastActive: now,
+      });
+
+      for (const [questionKey, value] of Object.entries(man.profile)) {
+        await ctx.db.insert("profileAnswers", {
+          userId,
+          questionKey,
+          value,
+          updatedAt: now,
+        });
+      }
+
+      for (const [questionKey, pref] of Object.entries(man.prefs)) {
+        await ctx.db.insert("preferenceAnswers", {
+          userId,
+          questionKey,
+          value: pref.value,
+          weight: pref.weight,
+          updatedAt: now,
+        });
+      }
+
+      created.push(man.displayName);
+    }
+
+    return { created };
+  },
+});
+
+export const clearTestMen = mutation({
+  args: {},
+  handler: async (ctx, _args) => {
+    const deleted: string[] = [];
+
+    for (let i = 1; i <= TEST_MEN.length; i++) {
+      const tokenIdentifier = `seed_test_man_${i}`;
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_token", (q) => q.eq("tokenIdentifier", tokenIdentifier))
+        .unique();
+      if (!user) continue;
+
+      const profileRows = await ctx.db
+        .query("profileAnswers")
+        .withIndex("by_user", (q) => q.eq("userId", user._id))
+        .collect();
+      for (const row of profileRows) await ctx.db.delete(row._id);
+
+      const prefRows = await ctx.db
+        .query("preferenceAnswers")
+        .withIndex("by_user", (q) => q.eq("userId", user._id))
+        .collect();
+      for (const row of prefRows) await ctx.db.delete(row._id);
+
+      const scoresA = await ctx.db
+        .query("matchScores")
+        .withIndex("by_user_a", (q) => q.eq("userA", user._id))
+        .collect();
+      for (const row of scoresA) await ctx.db.delete(row._id);
+
+      const scoresB = await ctx.db
+        .query("matchScores")
+        .withIndex("by_user_b", (q) => q.eq("userB", user._id))
+        .collect();
+      for (const row of scoresB) await ctx.db.delete(row._id);
+
+      await ctx.db.delete(user._id);
+      deleted.push(user.displayName);
+    }
+
+    return { deleted };
+  },
+});
+
 export const seedTestGirls = mutation({
   args: {},
   handler: async (ctx, _args) => {

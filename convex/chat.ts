@@ -72,7 +72,7 @@ export const sendMessage = mutation({
     // If the other party is a seed persona, schedule an AI reply
     const otherId = isA ? convo.userB : convo.userA;
     const otherUser = await ctx.db.get(otherId);
-    if (otherUser?.tokenIdentifier?.startsWith("seed_test_girl_")) {
+    if (otherUser?.tokenIdentifier?.startsWith("seed_test_girl_") || otherUser?.tokenIdentifier?.startsWith("seed_test_man_")) {
       // Random realistic delay: 2–7 seconds
       const delayMs = Math.floor(Math.random() * 5000) + 2000;
       await ctx.scheduler.runAfter(delayMs, internal.ai.respondAsPersona, {
