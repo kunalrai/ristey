@@ -43,7 +43,6 @@ export default function ChatPage() {
   const [sending, setSending] = useState(false);
   const [replyTo, setReplyTo] = useState<ReplyTo>(null);
   const [selectedMsgId, setSelectedMsgId] = useState<string | null>(null);
-  const [containerHeight, setContainerHeight] = useState(() => window.innerHeight);
 
   const bottomRef       = useRef<HTMLDivElement>(null);
   const inputRef        = useRef<HTMLInputElement>(null);
@@ -52,22 +51,32 @@ export default function ChatPage() {
 
   const convo = conversations?.find(c => c.conversationId === conversationId);
 
-  // ── Fix keyboard pushing messages off-screen ────────────────────────────
+  // ── Lock body scroll & scroll to bottom when keyboard opens ─────────────
   useEffect(() => {
+    // Prevent the page from scrolling when keyboard opens (which would push
+    // our position:fixed container partially off-screen)
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
     const vv = window.visualViewport;
-    if (!vv) return;
-    const update = () => {
-      setContainerHeight(vv.height);
-      requestAnimationFrame(() => {
-        bottomRef.current?.scrollIntoView({ behavior: "instant" });
-      });
-    };
-    vv.addEventListener("resize", update);
-    vv.addEventListener("scroll", update);
-    return () => {
-      vv.removeEventListener("resize", update);
-      vv.removeEventListener("scroll", update);
-    };
+    if (vv) {
+      const scrollToBottom = () => {
+        // Neutralise any scroll that Chrome applied trying to reveal the input
+        window.scrollTo(0, 0);
+        requestAnimationFrame(() => {
+          bottomRef.current?.scrollIntoView({ behavior: "instant" });
+        });
+      };
+      vv.addEventListener("resize", scrollToBottom);
+      vv.addEventListener("scroll", scrollToBottom);
+      return () => {
+        document.body.style.overflow = prev;
+        vv.removeEventListener("resize", scrollToBottom);
+        vv.removeEventListener("scroll", scrollToBottom);
+      };
+    }
+
+    return () => { document.body.style.overflow = prev; };
   }, []);
 
   // ── Scroll to bottom on new messages ───────────────────────────────────
@@ -132,7 +141,11 @@ export default function ChatPage() {
 
   return (
     <div
-      style={{ height: containerHeight, display: "flex", flexDirection: "column", background: STONE, fontFamily: SERIF, overflow: "hidden" }}
+      style={{
+        position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+        display: "flex", flexDirection: "column",
+        background: STONE, fontFamily: SERIF, overflow: "hidden",
+      }}
       onClick={() => { if (!longPressActive.current) setSelectedMsgId(null); }}
     >
 
