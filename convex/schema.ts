@@ -79,6 +79,7 @@ export default defineSchema({
     senderId: v.id("users"),
     text: v.string(),
     sentAt: v.number(),
+    replyToId: v.optional(v.id("messages")),
   })
     .index("by_conversation", ["conversationId", "sentAt"]),
 

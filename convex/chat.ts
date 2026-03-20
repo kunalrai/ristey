@@ -45,8 +45,12 @@ export const getOrCreateConversation = mutation({
 
 // ── Send a message ──────────────────────────────────────────────────────────
 export const sendMessage = mutation({
-  args: { conversationId: v.id("conversations"), text: v.string() },
-  handler: async (ctx, { conversationId, text }) => {
+  args: {
+    conversationId: v.id("conversations"),
+    text: v.string(),
+    replyToId: v.optional(v.id("messages")),
+  },
+  handler: async (ctx, { conversationId, text, replyToId }) => {
     const me = await getMe(ctx);
     const convo = await ctx.db.get(conversationId);
     if (!convo) throw new Error("Conversation not found");
@@ -59,6 +63,7 @@ export const sendMessage = mutation({
       senderId: me._id,
       text: text.trim(),
       sentAt: now,
+      ...(replyToId ? { replyToId } : {}),
     });
 
     await ctx.db.patch(conversationId, {
@@ -92,11 +97,26 @@ export const getMessages = query({
     if (!convo) return [];
     if (convo.userA !== me._id && convo.userB !== me._id) throw new Error("Forbidden");
 
-    return await ctx.db
+    const msgs = await ctx.db
       .query("messages")
       .withIndex("by_conversation", (q: any) => q.eq("conversationId", conversationId))
       .order("asc")
       .collect();
+
+    return Promise.all(msgs.map(async (msg) => {
+      if (!msg.replyToId) return { ...msg, replyTo: null };
+      const replyMsg = await ctx.db.get(msg.replyToId);
+      if (!replyMsg) return { ...msg, replyTo: null };
+      const replySender = await ctx.db.get(replyMsg.senderId);
+      return {
+        ...msg,
+        replyTo: {
+          text: replyMsg.text,
+          senderName: replySender?.displayName ?? "Unknown",
+          isMine: replyMsg.senderId === me._id,
+        },
+      };
+    }));
   },
 });
 

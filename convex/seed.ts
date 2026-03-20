@@ -474,6 +474,24 @@ export const seedTestGirls = mutation({
   },
 });
 
+export const patchSeedManAvatars = mutation({
+  args: {},
+  handler: async (ctx, _args) => {
+    const updated: string[] = [];
+    for (let i = 0; i < TEST_MEN.length; i++) {
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_token", (q) => q.eq("tokenIdentifier", `seed_test_man_${i + 1}`))
+        .unique();
+      if (user) {
+        await ctx.db.patch(user._id, { avatarUrl: TEST_MEN[i].avatarUrl });
+        updated.push(TEST_MEN[i].displayName);
+      }
+    }
+    return { updated };
+  },
+});
+
 export const patchSeedAvatars = mutation({
   args: {},
   handler: async (ctx, _args) => {
